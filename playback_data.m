@@ -10,9 +10,14 @@ directory = 'data/shapes_rotation/images/';
 start_frame = 1;
 end_frame = 1356;
 
+% outputVideo = VideoWriter(fullfile('.','shapes_rotation_out.avi'));
+% outputVideo.FrameRate = 22.69374787246113695676841030296153409735617837285827754453;
+% open(outputVideo)
+
 for framenum = start_frame:end_frame
     filepath = frameNum2filePath(directory, framenum);
     frame = imread(filepath);
+    % writeVideo(outputVideo,frame)
     imshow(frame);
     disp(framenum)
 end
