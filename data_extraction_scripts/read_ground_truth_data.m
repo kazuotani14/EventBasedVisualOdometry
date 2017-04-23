@@ -1,12 +1,12 @@
 %==== Open data file ====
-fid = fopen('../data/shapes_rotation/groundtruth.txt');
-% fid = fopen('../data/shapes_translation/groundtruth.txt');
+% fid = fopen('../data/shapes_rotation/groundtruth.txt');
+fid = fopen('../data/shapes_translation/groundtruth.txt');
 
 %==== Reading New Events ====
 
 % allocate space for the mat representation
-event_mat = zeros(11883,8); %shapes_rotation
-% event_mat = zeros(11947,8); %shapes_translation
+% groundtruth_mat = zeros(11883,8); %shapes_rotation
+groundtruth_mat = zeros(11947,8); %shapes_translation
 
 tline = fgetl(fid);
 tic
@@ -16,8 +16,12 @@ while ischar(tline)
 	t = arr(1);
 	x = arr(2);
 	y = arr(3);
-	polarity = arr(4);
-	event_mat(i,:) = [t, x, y, polarity];
+	z = arr(4);
+	q_x = arr(5);
+	q_y = arr(6);
+	q_z = arr(7);
+	q_w = arr(8);
+	groundtruth_mat(i,:) = [t, x, y, z, q_x, q_y, q_z, q_w];
 	i = i+1;
 	if mod(i,1000) == 0
 		i
@@ -27,6 +31,6 @@ while ischar(tline)
 	tline = fgetl(fid);
 	% toc
 end
-save shapes_rotation_groundtruth.mat event_mat
-% save shapes_translation_groundtruth.mat event_mat
+% save shapes_rotation_groundtruth.mat groundtruth_mat
+save shapes_translation_groundtruth.mat groundtruth_mat
 toc

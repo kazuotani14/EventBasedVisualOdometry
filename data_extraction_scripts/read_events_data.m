@@ -1,11 +1,11 @@
 %==== Open data file ====
-fid = fopen('../data/shapes_rotation/events.txt');
-% fid = fopen('../data/shapes_translation/events.txt');
+% fid = fopen('../data/shapes_rotation/events.txt');
+fid = fopen('../data/shapes_translation/events.txt');
 %==== Reading New Events ====
 
 % allocate space for the mat representation
-event_mat = zeros(23126288,4); %shapes_rotation
-% event_mat = zeros(17363976,4); %shapes_translation
+% event_mat = zeros(23126288,4); %shapes_rotation
+event_mat = zeros(17363976,4); %shapes_translation
 
 tline = fgetl(fid);
 tic
@@ -26,6 +26,6 @@ while ischar(tline)
 	tline = fgetl(fid);
 	% toc
 end
-save shapes_rotation_events.mat event_mat
-% save shapes_translation_events.mat event_mat
+% save shapes_rotation_events.mat event_mat
+save shapes_translation_events.mat event_mat
 toc
