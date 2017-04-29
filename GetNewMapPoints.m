@@ -1,7 +1,7 @@
 %This function will take high density places in the DSI,
 % and return these points in 3D for addition to the map
 
-function [new_map_points] = GetNewMapPoints(depth_map, kf_pose_estimate, KF_scaling, KF_depths)%  - origin is implied to be (0,0,0)?
+function [new_map_points] = GetNewMapPoints(depth_map, kf_pose, KF_scaling, KF_depths)%  - origin is implied to be (0,0,0)?
     % Input:
     % -------
     % depth_map: clustered points as h x w x 1, where the values are the depth plane

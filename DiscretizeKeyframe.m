@@ -7,7 +7,14 @@ function [KF_scaling, KF_homographies, KF_dsi, KF_depths] = DiscretizeKeyframe(K
 	fx = calib.fx;         % focal length in pixels
 	fy = calib.fy;          % focal length in pixels
 
-    KF_depths = linspace(min_depth, max_depth, N_planes);
+    % For uniform depth
+%     KF_depths = linspace(min_depth, max_depth, N_planes);
+   
+    % For uniform inverse depth
+    s = (1/min_depth - 1/max_depth)/N_planes;
+    inv_d = linspace(1/min_depth, 1/max_depth, 50);
+    KF_depths = 1./inv_d;
+    
     KF_dsi = repmat(KF_image,1,1,N_planes);
     KF_homographies = cell(N_planes,1);
     KF_scaling = zeros(N_planes,2);
