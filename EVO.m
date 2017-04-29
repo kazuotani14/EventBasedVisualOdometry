@@ -48,7 +48,7 @@ while end_time < event_mat(end,1);
 
 		% Initialize new keyframe
 		kf_pose_estimate = curr_pose_estimate;
-		[KF_scaling, KF_dsi, KF_depths] = DiscretizeKeyframe(event_image, min_depth, max_depth, N_planes, calib);
+		[KF_scaling, KF_homographies, KF_dsi, KF_depths] = DiscretizeKeyframe(event_image, min_depth, max_depth, N_planes, calib);
 	else
 		% update DSI
 		% [Transformation_to_KF] = getTransformationtoKF(curr_pose_estimate, KF_pose_estimate, K);

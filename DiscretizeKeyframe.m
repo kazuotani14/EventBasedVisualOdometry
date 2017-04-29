@@ -1,6 +1,6 @@
 %This function should generate the inital projections from the keyframe onto 
 % 50 planes, and also provide the Homographies from the kf to the planes
-function [KF_scaling, KF_dsi, KF_depths] = DiscretizeKeyframe(KF_image, min_depth, max_depth, N_planes, calib)
+function [KF_scaling, KF_homographies, KF_dsi, KF_depths] = DiscretizeKeyframe(KF_image, min_depth, max_depth, N_planes, calib)
     % Assume kf_image is already adjusted for camera center and projected
     % onto image plane
 
@@ -8,9 +8,8 @@ function [KF_scaling, KF_dsi, KF_depths] = DiscretizeKeyframe(KF_image, min_dept
 	fy = calib.fy;          % focal length in pixels
 
     KF_depths = linspace(min_depth, max_depth, N_planes);
-    % KF_dsi = cell(N_planes,1);
     KF_dsi = repmat(KF_image,1,1,N_planes);
-%     KF_homographies = cell(N_planes,1);
+    KF_homographies = cell(N_planes,1);
     KF_scaling = zeros(N_planes,2);
 
     h_image = size(KF_image,1);
@@ -29,9 +28,16 @@ function [KF_scaling, KF_dsi, KF_depths] = DiscretizeKeyframe(KF_image, min_dept
         % "pixels" to meters. d_pixels*scale = d_world
         scale_x = frustumHeight/h_image;   
         scale_y = frustumWidth/w_image;
+        if i==0:
+            scale_x0 = scale_x;
+            scale_y0 = scale_y;
+        end
         KF_scaling(i,:) = [scale_x, scale_y];
         
-        % KF_dsi{i} = KF_image;
+        KF_dsi(:,:, i) = KF_image;
+        KF_homographies{i} = [scale_x/scale_x0, 0, 0;
+                              0, scale_y/scale_y0, 0;
+                              0, 0, 1];
     end
     
 %     frame_corners = [1 1 1; 1 h 1; w 1 1; w h 1];

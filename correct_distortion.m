@@ -33,8 +33,8 @@ function [corrected_image] = correct_distortion(event_image, calib)
 	tang_dist_vec = [p1, p2];    %tangential distortion vector
 
 	cameraParams = cameraParameters('IntrinsicMatrix', K_mat,...
-	            'RadialDistortion', rad_dist_vec,...
-	            'TangentialDistortion', tang_dist_vec);
+                                    'RadialDistortion', rad_dist_vec,...
+                                    'TangentialDistortion', tang_dist_vec);
 
 	[corrected_image ,newOrigin] = undistortImage(event_image, cameraParams, 'nearest', 'OutputView', 'full');
 
