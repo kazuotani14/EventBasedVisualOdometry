@@ -3,7 +3,7 @@
 % markers on top
 % Integrate DVS events - may need to pass events thru calibration matrix
 
-function [] = playback_data()
+function [] = PlaybackData()
 
 % directory = 'data/shapes_rotation/images/';
 directory = 'data/shapes_translation/images/';
