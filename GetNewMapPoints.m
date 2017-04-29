@@ -22,7 +22,7 @@ function [new_map_points] = GetNewMapPoints(depth_map, kf_pose_estimate, KF_scal
 
 	[valid_y, valid_x] = ind2sub(size(depth_map), valid_idx);
 
-	points_in_camera_frame = [KF_scaling(1)*valid_x, KF_scaling(2)*valid_y, KF_scaling(depth_map(valid_y,valid_x))];
+	points_in_camera_frame = [KF_scaling(depth_map(valid_y,valid_x),1)*valid_x, KF_scaling(depth_map(valid_y,valid_x),2)*valid_y, KF_scaling(depth_map(valid_y,valid_x))];
 
 	new_map_points = points_in_camera_frame*tform';
 end
