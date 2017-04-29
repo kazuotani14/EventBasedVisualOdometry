@@ -1,5 +1,5 @@
 %correct camera distortion on event image
-function [corrected_image] = correct_distortion(event_image, calib)
+function [corrected_image] = CorrectDistortion(event_image, calib)
 
 	% [y,x] = ind2sub(size(event_image),find(event_image));
 

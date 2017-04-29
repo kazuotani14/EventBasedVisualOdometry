@@ -1,4 +1,4 @@
-function [rotm] = custom_quat2rotm(quat)
+function [rotm] = CustomQuat2RotM(quat)
 
 	rotm = zeros(3);
 	q_x = quat(1);
