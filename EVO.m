@@ -1,5 +1,6 @@
 load shapes_translation_events.mat
 load shapes_translation_groundtruth.mat
+load shapes_translation_calib.mat
 
 %%%RANDOM NOTES OF BEN, PLEASE IGNORE THESE FEW LINES
 % We need to do a sort of fake bootstrap to start the map?, so
@@ -8,7 +9,7 @@ load shapes_translation_groundtruth.mat
 
 %%%%%%%%%%%%%%%%%%%%%%% START VARIABLE INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end_time = 0;
-% this is a fake kf pose ot simply force the first event image to be a keyframe
+% this is a fake kf pose to simply force the first event image to be a keyframe
 first_kf_pose = -1000*ones(1,8);
 
 kf_pose_estimate = first_kf_pose;
@@ -17,11 +18,12 @@ last_pose_estimate = first_kf_pose;
 groundtruth_idx = 1;
 curr_pose_estimate = groundtruth_mat(groundtruth_idx,:);
 
-N = 50; %Depth of DSI
 W = 309; %Width of distortion corrected image
 H = 231; %Height of distortion corrected image
 
-kf_DSI = zeros(H,W,N);
+N_planes = 50;  %Depth of DSI
+min_depth = 0.15;
+max_depth = 1.5;
 
 map = [];
 %%%%%%%%%%%%%%%%%%%%%%%%% END VARIABLE INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -29,7 +31,7 @@ map = [];
 %%%%%%%%%%%%%%%%%%%%%%%%%%% MAIN LOOP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 while end_time < event_mat(end,1);
 	[event_image, curr_pose_estimate, keyframe_bool] = GetEventImage(kf_pose_estimate, last_pose_estimate, curr_pose_estimate, event_mat);
-	event_image = correct_distortion(event_image);
+	event_image = correct_distortion(event_image, calib);
 	imshow(event_image);
 
 	if keyframe_bool
@@ -41,7 +43,7 @@ while end_time < event_mat(end,1);
 		% Initialize new keyframe
 		% kf_DSI = zeros(W,H,N);
 		% kf_pose_estimate = curr_pose_estimate;
-		% kf_homographies = discretizeKeyframe(kf_pose_estimate, min_depth, max_depth, N_planes);
+		[KF_scaling, KF_dsi, KF_depths] = DiscretizeKeyframe(event_image, min_depth, max_depth, N_planes, calib);
 	else
 		% update DSI
 		% [Transformation_to_KF] = getTransformationtoKF(curr_pose_estimate, KF_pose_estimate, K);

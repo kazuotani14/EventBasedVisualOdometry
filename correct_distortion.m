@@ -1,5 +1,5 @@
 %correct camera distortion on event image
-function [corrected_image] = corrected_distortion(event_image)
+function [corrected_image] = correct_distortion(event_image, calib)
 
 	% [y,x] = ind2sub(size(event_image),find(event_image));
 
@@ -9,15 +9,20 @@ function [corrected_image] = corrected_distortion(event_image)
 
 	% corrected_image(new_y, new_x) = 1;
 
-	fx = 199.092366542;
-	fy = 198.82882047;
-	cx = 132.192071378+1;
-	cy = 110.712660011+1;
-	k1 = -0.368436311798;
-	k2 = 0.150947243557;
-	p1 = -0.000296130534385;
-	p2 = -0.000759431726241;
-	k3 = 0.0;
+% 	fx = 199.092366542;         % focal length in pixels
+% 	fy = 198.82882047;          % focal length in pixels
+% 	cx = 132.192071378+1;       % optical center, in pixels
+% 	cy = 110.712660011+1;       % optical center, in pixels
+% 	k1 = -0.368436311798;       % radial distortion coefficient
+% 	k2 = 0.150947243557;        % radial distortion coefficient
+% 	p1 = -0.000296130534385;    % tangential distortion coefficient
+% 	p2 = -0.000759431726241;    % tangential distortion coefficient
+% 	k3 = 0.0;                   % radial distortion coefficient
+
+    fx = calib.fx; fy = calib.fy; 
+    cx = calib.cx; cy = calib.cy;
+    k1 = calib.k1; k2 = calib.k2; k3 = calib.k3;
+    p1 = calib.p1; p2 = calib.p2;
 
 	K_mat = [fx, 0, 0;
 	    	0, fy, 0;
@@ -25,7 +30,7 @@ function [corrected_image] = corrected_distortion(event_image)
 
 	rad_dist_vec = [k1, k2, k3]; %radial distortion vector
 
-	tang_dist_vec = [p1, p2]; %tangential distortion vector
+	tang_dist_vec = [p1, p2];    %tangential distortion vector
 
 	cameraParams = cameraParameters('IntrinsicMatrix', K_mat,...
 	            'RadialDistortion', rad_dist_vec,...
