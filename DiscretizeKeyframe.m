@@ -8,7 +8,8 @@ function [KF_scaling, KF_dsi, KF_depths] = DiscretizeKeyframe(KF_image, min_dept
 	fy = calib.fy;          % focal length in pixels
 
     KF_depths = linspace(min_depth, max_depth, N_planes);
-    KF_dsi = cell(N_planes,1);
+    % KF_dsi = cell(N_planes,1);
+    KF_dsi = repmat(KF_image,1,1,N_planes);
 %     KF_homographies = cell(N_planes,1);
     KF_scaling = zeros(N_planes,2);
 
@@ -30,7 +31,7 @@ function [KF_scaling, KF_dsi, KF_depths] = DiscretizeKeyframe(KF_image, min_dept
         scale_y = frustumWidth/w_image;
         KF_scaling(i,:) = [scale_x, scale_y];
         
-        KF_dsi{i} = KF_image;
+        % KF_dsi{i} = KF_image;
     end
     
 %     frame_corners = [1 1 1; 1 h 1; w 1 1; w h 1];
