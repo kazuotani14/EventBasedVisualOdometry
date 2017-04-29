@@ -25,6 +25,10 @@ N_planes = 50;  %Depth of DSI
 min_depth = 0.15;
 max_depth = 1.5;
 
+KF_scaling = [];
+KF_dsi = {};
+KF_depths = [];
+
 map = [];
 %%%%%%%%%%%%%%%%%%%%%%%%% END VARIABLE INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -36,13 +40,14 @@ while end_time < event_mat(end,1);
 
 	if keyframe_bool
 		% add old DSI points to global map and reset DSI
-		% [points_in_planes] = getDSIClusters(kf_DSI);
-		% [map_points] = getMapPoints(points_in_planes, kf_pose_estimate)%  - origin is implied to be (0,0,0)?
-		% map = [map; map_points];
+		if groundtruth_idx ~= 1
+			[points_in_planes] = GetClusters(KF_dsi);
+			% [map_points] = GetNewMapPoints(points_in_planes, kf_pose_estimate)%  - origin is implied to be (0,0,0)?
+			% map = [map; map_points];
+		end
 
 		% Initialize new keyframe
-		% kf_DSI = zeros(W,H,N);
-		% kf_pose_estimate = curr_pose_estimate;
+		kf_pose_estimate = curr_pose_estimate;
 		[KF_scaling, KF_dsi, KF_depths] = DiscretizeKeyframe(event_image, min_depth, max_depth, N_planes, calib);
 	else
 		% update DSI
