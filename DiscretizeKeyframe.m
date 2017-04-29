@@ -28,7 +28,7 @@ function [KF_scaling, KF_homographies, KF_dsi, KF_depths] = DiscretizeKeyframe(K
         % "pixels" to meters. d_pixels*scale = d_world
         scale_x = frustumHeight/h_image;   
         scale_y = frustumWidth/w_image;
-        if i==0:
+        if i==1
             scale_x0 = scale_x;
             scale_y0 = scale_y;
         end
