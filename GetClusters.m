@@ -1,5 +1,5 @@
 % This function takes in the DSI (IxN), finds the local maxima of the
-% ray density function, and returns the most confident pixels (IxN) 
+% ray density function, and returns depth-map of most confident points (Ix1) 
 
 function [depth_map] = GetClusters(KF_DSI)
 
