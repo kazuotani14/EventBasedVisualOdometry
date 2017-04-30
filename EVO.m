@@ -22,8 +22,8 @@ curr_pose_estimate = groundtruth_mat(groundtruth_idx,:);
 % H = 231; %Height of distortion corrected image
 
 N_planes = 50;  %Depth of DSI
-min_depth = 0.15;
-max_depth = 1.5;
+min_depth = 0.75;
+max_depth = 1.25;
 
 KF_scaling = [];
 KF_dsi = {};
@@ -53,8 +53,8 @@ while end_time < event_mat(end,1)
 		[KF_scaling, KF_homographies, KF_dsi, KF_depths] = DiscretizeKeyframe(event_image, min_depth, max_depth, N_planes, calib);
 	else
 		% update DSI
-		[Transformation_to_KF, H_to_KF] = FindPoseToKfH(kf_pose_estimate, curr_pose_estimate, calib);
-		[KF_dsi] =  UpdateDSI(KF_dsi, H_to_KF, event_image, KF_homographies, KF_depths, calib);
+		[T_kf, T_i] = FindPoseToKfH(kf_pose_estimate, curr_pose_estimate, calib);
+		[KF_dsi] =  UpdateDSI(KF_dsi, event_image, T_kf, T_i, KF_homographies, KF_depths, calib);
 	end
 
 	groundtruth_idx = groundtruth_idx + 1;

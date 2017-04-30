@@ -15,7 +15,7 @@ function [KF_scaling, KF_homographies, KF_dsi, KF_depths] = DiscretizeKeyframe(K
     inv_d = linspace(1/min_depth, 1/max_depth, 50);
     KF_depths = 1./inv_d;
     
-    KF_dsi = repmat(KF_image,1,1,N_planes);
+    KF_dsi = repmat((KF_image),1,1,N_planes);
     KF_homographies = cell(N_planes,1);
     KF_scaling = zeros(N_planes,2);
 
@@ -41,7 +41,7 @@ function [KF_scaling, KF_homographies, KF_dsi, KF_depths] = DiscretizeKeyframe(K
         end
         KF_scaling(i,:) = [scale_x, scale_y];
         
-        KF_dsi(:,:, i) = KF_image;
+%         KF_dsi(:,:, i) = KF_image;
         KF_homographies{i} = [scale_x/scale_x0, 0, 0;
                               0, scale_y/scale_y0, 0;
                               0, 0, 1];
