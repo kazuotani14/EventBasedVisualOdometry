@@ -30,13 +30,14 @@ KF_dsi = {};
 KF_depths = [];
 
 map = [];
+start_idx = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%% END VARIABLE INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%% MAIN LOOP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 while end_time < event_mat(end,1)
-	[event_image, curr_pose_estimate, keyframe_bool] = GetEventImage(kf_pose_estimate, last_pose_estimate, curr_pose_estimate, event_mat);
+	[event_image, curr_pose_estimate, keyframe_bool, start_idx] = GetEventImage(kf_pose_estimate, last_pose_estimate, curr_pose_estimate, event_mat, start_idx);
 	event_image = CorrectDistortion(event_image, calib);
-	imshow(event_image);
+	% imshow(event_image);
 %     disp('event image');
 %     pause
 

@@ -32,17 +32,19 @@ for i=1:n_planes
     d = KF_depths(i);
     H{i} = KF_Homographies{i}*H_kf2z1*H_i2kf;
 end
-U
+
 for i=1:n_planes
 %    tform = projective2d(H{i}');
 %    event_im_KF = imwarp(event_image, tform, 'OutputView',imref_obj);
    event_im_KF = warpH(event_image, H{i}, [size(KF_DSI,1),size(KF_DSI,2)]);
    % increment relevant DSI voxels
    KF_DSI(:,:,i) = KF_DSI(:,:,i) + event_im_KF;
-   spy(sparse(KF_DSI(:,:,i)));
-   disp('update DSI')
-   disp(sum(sum(KF_DSI(:,:,i))));
-   pause(0.1)
+   % spy(sparse(KF_DSI(:,:,i)));
+   % disp('update DSI')
+   % imagesc(KF_DSI(:,:,i))
+   % drawnow
+   % disp(sum(sum(KF_DSI(:,:,i))));
+   % pause(0.1)
 end
 
 
