@@ -18,8 +18,8 @@ last_pose_estimate = first_kf_pose;
 groundtruth_idx = 1;
 curr_pose_estimate = groundtruth_mat(groundtruth_idx,:);
 
-W = 309; %Width of distortion corrected image
-H = 231; %Height of distortion corrected image
+% W = 309; %Width of distortion corrected image
+% H = 231; %Height of distortion corrected image
 
 N_planes = 50;  %Depth of DSI
 min_depth = 0.15;
@@ -33,7 +33,7 @@ map = [];
 %%%%%%%%%%%%%%%%%%%%%%%%% END VARIABLE INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%% MAIN LOOP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-while end_time < event_mat(end,1);
+while end_time < event_mat(end,1)
 	[event_image, curr_pose_estimate, keyframe_bool] = GetEventImage(kf_pose_estimate, last_pose_estimate, curr_pose_estimate, event_mat);
 	event_image = CorrectDistortion(event_image, calib);
 	imshow(event_image);

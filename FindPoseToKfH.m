@@ -13,19 +13,20 @@ function [T_kis, H_kis] = FindPoseToKfH(kf_pose, i_pose, calib)
     kf_T = kf_pose(2:4)';
     kf_quat = kf_pose(5:8);
     kf_R = CustomQuat2RotM(kf_quat);
-    % kf_R = quat2rotm(kf_quat);
-%     kf_H = K'*[kf_R, kf_T];
     kf_M = [kf_R, kf_T; 0 0 0 1];
     kf_H = K'*[kf_R(:,1:2), kf_T];
     
     i_T = i_pose(2:4)';
     i_quat = i_pose(5:8);
     i_R = CustomQuat2RotM(i_quat);
-    % i_R = quat2rotm(i_quat);
-%     i_H = K'*[i_R, i_T];
     i_M = [i_R, i_T; 0 0 0 1];
     i_H = K'*[i_R(:,1:2), i_T];
     
-    T_kis = kf_M/i_M;
-    H_kis = kf_H/i_H;
+    %% 
+    R_i2kf = kf_R*i_R';
+    T_i2kf = kf_T - i_T;
+    T_kis = [R_i2kf, T_i2kf; 0 0 0 1];
+    H_kis = K'*[R_i2kf(:,1:2), T_i2kf];
+    
+%     H_kis = kf_H/i_H;
 end

@@ -21,8 +21,11 @@ H0 = [z0/fx 0 0; 0 z0/fy 0; 0 0 1];
         H = KF_Homographies{i}*H0*H_to_KF;
         % transform event image to keyframe pose
         tform = projective2d(H');
+
         
         event_im_KF = imwarp(event_image, tform);
+        event_im_KF = imresize(event_im_KF,size(event_image));
+        event_im_KF = warpH(event_image, H', size(event_image));
         imshow(event_im_KF);
         disp('update DSI');
         pause
