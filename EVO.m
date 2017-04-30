@@ -55,7 +55,7 @@ while end_time < event_mat(end,1)
 		% update DSI
 
 		[T_kf, T_i] = FindPoseToKfH(kf_pose_estimate, curr_pose_estimate, calib);
-		[KF_dsi] =  UpdateDSI(KF_dsi, event_image, T_kf, T_i, KF_homographies, KF_depths, calib);
+		[KF_dsi] =  UpdateDSI(KF_dsi, event_image, T_kf, T_i, KF_homographies, KF_depths, calib, KF_scaling);
 	end
 
 	groundtruth_idx = groundtruth_idx + 1;
