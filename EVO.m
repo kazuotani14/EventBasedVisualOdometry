@@ -51,8 +51,8 @@ while end_time < event_mat(end,1);
 		[KF_scaling, KF_homographies, KF_dsi, KF_depths] = DiscretizeKeyframe(event_image, min_depth, max_depth, N_planes, calib);
 	else
 		% update DSI
-		[Transformation_to_KF] = FindPoseToKfH(kf_pose_estimate, curr_pose_estimate, calib);
-		% [kf_DSI] = UpdateDSI(kf_DSI, Transformation_to_KF, event_image);
+		[Transformation_to_KF, H_to_KF] = FindPoseToKfH(kf_pose_estimate, curr_pose_estimate, calib);
+		% [kf_DSI] = UpdateDSI(kf_DSI, H_to_KF, event_image);
 	end
 
 	groundtruth_idx = groundtruth_idx + 1;
