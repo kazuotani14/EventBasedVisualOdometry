@@ -41,7 +41,7 @@ function [KF_scaling, KF_homographies, KF_dsi, KF_depths] = DiscretizeKeyframe(K
         end
         KF_scaling(i,:) = [scale_x, scale_y];
         
-        KF_dsi(:,:, i) = KF_image;
+%         KF_dsi(:,:, i) = KF_image;
         KF_homographies{i} = [scale_x/scale_x0, 0, 0;
                               0, scale_y/scale_y0, 0;
                               0, 0, 1];

@@ -24,9 +24,9 @@ function [T_kis, H_kis] = FindPoseToKfH(kf_pose, i_pose, calib)
     
     %% 
     R_i2kf = kf_R*i_R';
-    T_i2kf = kf_T - i_T;
+    T_i2kf = -kf_T + i_T;
     T_kis = [R_i2kf, T_i2kf; 0 0 0 1];
-    H_kis = K'*[R_i2kf(:,1:2), T_i2kf];
+    H_kis = [R_i2kf(:,1:2), 0.15*R_i2kf(:,3)+T_i2kf];
     
 %     H_kis = kf_H/i_H;
 end
