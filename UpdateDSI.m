@@ -1,7 +1,7 @@
 function [KF_DSI] =  UpdateDSI(KF_DSI, event_image, T_kf, T_i, KF_Homographies, KF_depths, calib)
+
 % Transformation_to_KF should transform an event_image in to th keyframe
 % event_image is 180x240(original) or 231x309 (corrected)
-
 
 %find first homography from KF image frame to the z0 plane
 n_planes = size(KF_DSI,3);
@@ -21,7 +21,6 @@ H_i2kf = H_kf / H_i;
 
 % p_i = [52,81,1]';
 % p_kf = H_i2kf*p_i;
-
 
 %%
 

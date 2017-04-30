@@ -13,7 +13,7 @@ function [new_map_points] = GetNewMapPoints(depth_map, kf_pose, KF_scaling, KF_d
 
     kf_T = kf_pose(2:4)';
     kf_quat = kf_pose(5:8);
-    kf_R = custom_quat2rotm(kf_quat);
+    kf_R = CustomQuat2RotM(kf_quat);
 
 	tform = [kf_R, kf_T;
 			zeros(1,3), 1];
@@ -22,7 +22,8 @@ function [new_map_points] = GetNewMapPoints(depth_map, kf_pose, KF_scaling, KF_d
 
 	[valid_y, valid_x] = ind2sub(size(depth_map), valid_idx);
 
-	points_in_camera_frame = [KF_scaling(depth_map(valid_y,valid_x),1)*valid_x, KF_scaling(depth_map(valid_y,valid_x),2)*valid_y, KF_scaling(depth_map(valid_y,valid_x))];
+	points_in_camera_frame = [KF_scaling(depth_map(valid_y,valid_x),1).*valid_x, KF_scaling(depth_map(valid_y,valid_x),2).*valid_y, KF_depths(depth_map(valid_y,valid_x))];
 
-	new_map_points = points_in_camera_frame*tform';
+	new_map_points = [points_in_camera_frame, ones(size(points_in_camera_frame,1),1)]*tform';
+    new_map_points = new_map_points(:,1:3);
 end

@@ -37,8 +37,8 @@ while end_time < event_mat(end,1)
 	[event_image, curr_pose_estimate, keyframe_bool] = GetEventImage(kf_pose_estimate, last_pose_estimate, curr_pose_estimate, event_mat);
 	event_image = CorrectDistortion(event_image, calib);
 	imshow(event_image);
-    disp('event image');
-    pause
+%     disp('event image');
+%     pause
 
 	if keyframe_bool
 		% add old DSI points to global map and reset DSI
@@ -53,8 +53,9 @@ while end_time < event_mat(end,1)
 		[KF_scaling, KF_homographies, KF_dsi, KF_depths] = DiscretizeKeyframe(event_image, min_depth, max_depth, N_planes, calib);
 	else
 		% update DSI
-		[T_kf, T_i] = FindPoseToKfH(kf_pose_estimate, curr_pose_estimate, calib);
-		[KF_dsi] =  UpdateDSI(KF_dsi, event_image, T_kf, T_i, KF_homographies, KF_depths, calib);
+
+		[Transformation_to_KF, H_to_KF] = FindPoseToKfH(kf_pose_estimate, curr_pose_estimate, calib);
+		[KF_dsi] =  UpdateDSI(KF_dsi, Transformation_to_KF, event_image, KF_homographies, KF_depths, calib, KF_scaling);
 	end
 
 	groundtruth_idx = groundtruth_idx + 1;
