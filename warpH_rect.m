@@ -17,8 +17,13 @@ for i = 1:n_points
     coord = warped_points(i,:);
     x = floor(coord(1)); y = floor(coord(2));
     if (x>0 && x<scale(1)*out_size(1) && y>0 && y<scale(2)*out_size(2))
+<<<<<<< HEAD
         x = ceil(x/scale(1));
         y = ceil(y/scale(2));
+=======
+        x = floor(x/scale(1));
+        y = floor(y/scale(2));
+>>>>>>> origin/master
         warp_im(x,y) = 1;
     end
 end
