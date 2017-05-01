@@ -40,8 +40,8 @@ event_image = event_image > 0;
 % imshow(event_image);
 
 % calculate the norm of the distance to determine if we should do a keyframe
-dist_thres = 0.01;
-distance_from_kf = norm(curr_pose_estimate(2:end)-kf_pose_estimate(2:end));
+dist_thres = 0.005;
+distance_from_kf = norm(curr_pose_estimate(2:4)-kf_pose_estimate(2:4));
 keyframe_bool = distance_from_kf > dist_thres;
 
 end
