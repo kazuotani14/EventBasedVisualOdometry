@@ -2,6 +2,7 @@ function warp_im = warpH_rect(im, H, out_size, scaling)
 % Assume im is zeros where there are no points
 nonzeros = find(im);
 
+% 
 n_points = length(nonzeros);
 points = zeros(n_points, 3);
 for i = 1:n_points

@@ -40,7 +40,7 @@ Cx = -dot(r1,t);
 Cy = -dot(r2,t);
 Cz = -dot(r3,t);
  
-H_i2z0 = [R_kf2i(:,1), R_kf2i(:,2), KF_depths(1)*R_kf2i(:,3)+T_kf2i];
+H_i2z0 = K'*[R_kf2i(:,1), R_kf2i(:,2), KF_depths(1)*R_kf2i(:,3)+T_kf2i];
 H_kf2z0 = inv(H_i2z0)*(H_i2kf);
 H_kf2zo(3,3) = 1;
  
