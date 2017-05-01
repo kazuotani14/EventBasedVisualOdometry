@@ -23,13 +23,13 @@ Fx = calib.fx * 18.5 * 1e-6; Fy = calib.fy * 18.5 * 1e-6;
 % cx = calib.cx; cy = calib.cy;
 cx = 27.5; cy = 16.5;
 fx = calib.fx; fy = calib.fy;
-K = [fx, 0, cx;
-    0, fy, cy;
-    0, 0, 1];
+K = [fx,  0, cx;
+      0, fy, cy;
+      0,  0,  1];
 
-t = [0.001, 0, 0]';
-ang = [0, pi/4, 0];
-R = eye(3);%eul2rotm(ang);
+t = [2.5, 0, 0]';
+ang = [0.0, 0.0175, 0.0];
+R = eul2rotm(ang);
 
 T_i = [R, t; 0,0,0,1];
 T_kf = eye(4);
@@ -54,17 +54,22 @@ Cz = -R(:,3)'*t;
 
 K = K * 18.5*1e-6;
 K(3,3)=1;
-H0 = K*[R(:,1), R(:,2), KF_depths(1)*R(:,3)+t];
+% H0 = K*[R(:,1), R(:,2), KF_depths(1)*R(:,3)+t];
 
 % H0 = H_kf / H_i;
 z0 = KF_depths(1);
+n = [0, 0, 1]';
+
 for i=1:n_planes
-    delta = (KF_depths(i) - Cz) / (z0 - Cz);
-    H_kf2z = [delta, 0, (1-delta)*Cx; 0, delta, (1-delta)*Cy; 0, 0, 1];
-    H{i} = H_kf2z*H0;
-%     H{i} = H{i}/H{i}(3,3);
-%     H{i} = H0;
-%     H{i}(3,3) = KF_depths(i);
+    H_z2i = R' + (R'*t*n')/KF_depths(i);
+    H{i} = inv(H_z2i);
+    
+%     delta = (KF_depths(i) - Cz) / (z0 - Cz);
+%     H_kf2z = [delta, 0, (1-delta)*Cx; 0, delta, (1-delta)*Cy; 0, 0, 1];
+%     H{i} = H_kf2z*H0;
+% %     H{i} = H{i}/H{i}(3,3);
+% %     H{i} = H0;
+% %     H{i}(3,3) = KF_depths(i);
 end
 
 imref_obj = imref2d([size(KF_DSI,1),size(KF_DSI,2)]);
@@ -72,17 +77,17 @@ imref_obj = imref2d([size(KF_DSI,1),size(KF_DSI,2)]);
 for i=1:n_planes
 %    event_im_KF = warpH(event_image, H{i}, [size(KF_DSI,1),size(KF_DSI,2)]);
 
-    tform = projective2d(H{i});
-   event_im_KF = imwarp(event_image, tform);
-   event_im_KF = imresize(event_im_KF, [size(event_image,1),size(event_image,2)]);
+    tform = projective2d(H{i}');
+   event_im_KF = imwarp(event_image, tform, 'nearest', 'OutputView',imref_obj);
+%    event_im_KF = imresize(event_im_KF, [size(event_image,1),size(event_image,2)], 'nearest');
    
 %    KF_DSI(:,:,i) = KF_DSI(:,:,i) + event_im_KF;
-   imshow(event_im_KF);
-%    spy(sparse(KF_DSI(:,:,i)));
+%    imshow(event_im_KF);
+   spy(sparse(event_im_KF));
    disp('update DSI')
 %    disp(sum(sum(KF_DSI(:,:,i))));
    drawnow;
-   pause(0.1)
+   pause()
 end
 
 
