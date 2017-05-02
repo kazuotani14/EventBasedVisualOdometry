@@ -5,8 +5,8 @@
 function [map] = RadiusFilterMap(map, radius, num_neighb)
     in_map_pc = pointCloud(map);
     out_map = [];
-    for i=size(in_map_pc.Locations, 1)
-        point = map_pc.Locations(i,:);
+    for i=size(in_map_pc.Location, 1)
+        point = in_map_pc.Location(i,:);
         [neighb, ~] = findNeighborsInRadius(in_map_pc, point, radius);
         % If number of neighbors is sufficient, keep point in map
         if(size(neighb,1) > num_neighb)

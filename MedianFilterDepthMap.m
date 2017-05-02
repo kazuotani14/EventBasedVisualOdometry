@@ -8,6 +8,9 @@ function [depth_map] = MedianFilterDepthMap(depth_map, half_window)
     depth_interm = padarray(depth_map, half_window);
     for y=half_window(1)+1:half_window(1)+h
         for x = half_window(2)+1:half_window(2)+w
+            if depth_interm(y, x) == 0
+                continue
+            end
             piece = depth_interm(y-half_window(1):y+half_window(1), x-half_window(2):x+half_window(2));
             depth_map(y-half_window(1), x-half_window(2)) = median(piece(piece~=0));
         end
