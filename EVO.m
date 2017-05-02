@@ -59,8 +59,8 @@ while end_time < event_mat(end,1)
             figure(2);
             imagesc(depth_map);
             [map_points] = GetNewMapPoints(depth_map, kf_pose_estimate, KF_scaling, KF_depths);%  - origin is implied to be (0,0,0)?
-%             map_points = RadiusFilterMap(map_points, 0.01, 0.01*size(map_points,1));
-            map_points = RadiusFilterMap(map_points, 0.03, 5);
+            map_points = RadiusFilterMap(map_points, 0.07, min(0.06*size(map_points,1),30));
+%             map_points = RadiusFilterMap(map_points, 0.03, 5);
             map = [map; map_points];
             figure(3);
             scatter3(map(:,1), map(:,2), map(:,3));
