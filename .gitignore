@@ -2,3 +2,7 @@
 /shapes_translation_groundtruth.mat
 
 *.m~
+
+shapes_rotation_events.mat
+
+shapes_rotation_groundtruth.mat

@@ -38,7 +38,7 @@ function [corrected_image, new_calib] = CorrectDistortion(event_image, calib)
 
 	[corrected_image ,newOrigin] = undistortImage(event_image, cameraParams, 'nearest', 'OutputView', 'full');
 
-	new_calib = calib
+	new_calib = calib;
 	new_calib.cx = new_calib.cx - newOrigin(1);
 	new_calib.cy = new_calib.cy - newOrigin(2);
 
