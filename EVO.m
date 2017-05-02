@@ -2,8 +2,8 @@ load shapes_translation_events.mat
 load shapes_translation_groundtruth.mat
 load shapes_translation_calib.mat
 
-% event_mat = event_mat(94799:end, :);
-% groundtruth_mat = groundtruth_mat(186:end, :);
+event_mat = event_mat(94799:end, :);
+groundtruth_mat = groundtruth_mat(186:end, :);
 
 %%%RANDOM NOTES OF BEN, PLEASE IGNORE THESE FEW LINES
 % We need to do a sort of fake bootstrap to start the map?, so
@@ -54,15 +54,17 @@ while end_time < event_mat(end,1)
             [r,c,v] = ind2sub(size(KF_dsi),IND);
             depth_map = GetClusters(KF_dsi);
             depth_map = MedianFilterDepthMap(depth_map, [7,7]);
+            figure(1);
             scatter3(c,r,v,10,CNT);
-            figure;
+            figure(2);
             imagesc(depth_map);
-            pause
-            figure;
             [map_points] = GetNewMapPoints(depth_map, kf_pose_estimate, KF_scaling, KF_depths);%  - origin is implied to be (0,0,0)?
+            map_points = RadiusFilterMap(map_points, 0.1, 0.05*size(map_points,1));
             map = [map; map_points];
-            map = RadiusFilterMap(map, 0.1, 3);
+            figure(3);
+            scatter3(map(:,1), map(:,2), map(:,3));
             
+            pause
         end
         % Initialize new keyframe
         kf_pose_estimate = curr_pose_estimate;
