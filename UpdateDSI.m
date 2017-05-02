@@ -12,21 +12,23 @@ K = [fx,  0, cx;
 n_planes = size(KF_DSI,3);
 
 T_i_in_kf = T_kf \ T_i;
-R = T_i_in_kf(1:3,1:3);
 t = T_i_in_kf(1:3,4);
-
 n = [0, 0, -1]';
 
+% precompute some reused matrices
+R_transpose = T_i_in_kf(1:3,1:3)';
+R_t_n = R_transpose*t*n';
+
 imref_obj = imref2d([size(KF_DSI,1),size(KF_DSI,2)]);
+event_image = double(event_image);
 
 for i=1:n_planes
-    H_z2i = K * (R' + (R'*t*n')./KF_depths(i)) / K;
+    H_z2i = K * (R_transpose + R_t_n./KF_depths(i)) / K;
     H = inv(H_z2i);
 
     tform = projective2d(H');
-    event_im_KF = imwarp(double(event_image), tform, 'nearest', 'OutputView', imref_obj);   
+    event_im_KF = imwarp(event_image, tform, 'nearest', 'OutputView', imref_obj);   
     KF_DSI(:,:,i) = KF_DSI(:,:,i) + event_im_KF;
 end
-
 
 end
