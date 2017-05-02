@@ -2,8 +2,8 @@ load shapes_translation_events.mat
 load shapes_translation_groundtruth.mat
 load shapes_translation_calib.mat
 
-event_mat = event_mat(94799:end, :);
-groundtruth_mat = groundtruth_mat(186:end, :);
+% event_mat = event_mat(94799:end, :);
+% groundtruth_mat = groundtruth_mat(186:end, :);
 
 %%%RANDOM NOTES OF BEN, PLEASE IGNORE THESE FEW LINES
 % We need to do a sort of fake bootstrap to start the map?, so
