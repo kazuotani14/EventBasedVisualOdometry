@@ -9,8 +9,8 @@ function [out_map] = RadiusFilterMap(map, radius, num_neighb)
     out_map = [];
     for i=1:size(in_map_pc.Location, 1)
         point = in_map_pc.Location(i,:);
-%         [neighb, ~] = findNeighborsInRadius(temp_map_pc, point, radius);
-        [neighb, ~] = findNeighborsInRadius(in_map_pc, point, radius);
+        [neighb, ~] = findNeighborsInRadius(temp_map_pc, point, radius);
+%         [neighb, ~] = findNeighborsInRadius(in_map_pc, point, radius);
         % If number of neighbors is sufficient, keep point in map
         if(size(neighb,1) >= num_neighb)
             out_map = cat(1, out_map, point);
