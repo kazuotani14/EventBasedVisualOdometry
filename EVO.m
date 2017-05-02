@@ -2,8 +2,8 @@ load shapes_translation_events.mat
 load shapes_translation_groundtruth.mat
 load shapes_translation_calib.mat
 
-event_mat = event_mat(94799:end, :);
-groundtruth_mat = groundtruth_mat(186:end, :);
+% event_mat = event_mat(94799:end, :);
+% groundtruth_mat = groundtruth_mat(186:end, :);
 
 %%%RANDOM NOTES OF BEN, PLEASE IGNORE THESE FEW LINES
 % We need to do a sort of fake bootstrap to start the map?, so
@@ -25,8 +25,8 @@ curr_pose_estimate = groundtruth_mat(groundtruth_idx,:);
 % H = 231; %Height of distortion corrected image
 
 N_planes = 50;  %Depth of DSI
-min_depth = 0.15;
-max_depth = 1.5;
+min_depth = 0.5;
+max_depth = 2.0;
 
 KF_scaling = [];
 KF_dsi = {};
@@ -52,9 +52,12 @@ while end_time < event_mat(end,1)
             IND = find(KF_dsi);
             CNT = KF_dsi(IND);
             [r,c,v] = ind2sub(size(KF_dsi),IND);
-            scatter3(c,r,KF_depths(v),10,CNT);
-            pause
 			[depth_map] = GetClusters(KF_dsi);
+            scatter3(c,r,v,10,CNT);
+            figure;
+            imagesc(depth_map);
+            pause
+            figure;
 			[map_points] = GetNewMapPoints(depth_map, kf_pose_estimate, KF_scaling, KF_depths);%  - origin is implied to be (0,0,0)?
 			map = [map; map_points];
 		end
@@ -69,7 +72,7 @@ while end_time < event_mat(end,1)
 		[KF_dsi] =  UpdateDSI(KF_dsi, event_image, T_kf, T_i, KF_homographies, KF_depths, calib);
     end
 
-	groundtruth_idx = groundtruth_idx + 1;
+	groundtruth_idx = groundtruth_idx + 1
 	last_pose_estimate = curr_pose_estimate;
 	curr_pose_estimate = groundtruth_mat(groundtruth_idx,:);
 end
