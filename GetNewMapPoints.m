@@ -21,7 +21,7 @@ function [new_map_points] = GetNewMapPoints(depth_map, kf_pose, KF_scaling, KF_d
             zeros(1,3), 1]; %world to kf tform
 
     valid_idx = find(depth_map);
-    if length(valid_idx) == 0
+    if isempty(valid_idx)
         return
     end
 
