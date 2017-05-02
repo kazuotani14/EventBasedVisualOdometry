@@ -5,7 +5,7 @@
 
 function [depth_map] = GetClusters(KF_DSI)
 
-C = -1.5;
+C = -2;
 filt_size = 5;
 filter = fspecial('gaussian', filt_size); % Sigma to be determined
 

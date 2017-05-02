@@ -22,7 +22,7 @@ R_t_n = R_transpose*t*n';
 imref_obj = imref2d([size(KF_DSI,1),size(KF_DSI,2)]);
 event_image = double(event_image);
 
-for i=1:n_planes
+parfor i=1:n_planes
     H_z2i = K * (R_transpose + R_t_n./KF_depths(i)) / K;
     H = inv(H_z2i);
 

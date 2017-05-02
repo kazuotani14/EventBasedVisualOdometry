@@ -49,27 +49,18 @@ while end_time < event_mat(end-1,1)
 %     pause
 
     if keyframe_bool
-        KF_count = KF_count + 1
+        KF_count = KF_count + 1;
+        fprintf('Keyframe: %d \t Map Size: %d \n',KF_count, size(map,1));
         % add old DSI points to global map and reset DSI
         if groundtruth_idx ~= 1
-            colormap parula
-            IND = find(KF_dsi);
-            CNT = KF_dsi(IND);
-            [r,c,v] = ind2sub(size(KF_dsi),IND);
             depth_map = GetClusters(KF_dsi);
             depth_map = MedianFilterDepthMap(depth_map, [7,7]);
-            figure(1);
-            scatter3(c,r,v,10,CNT);
-            figure(2);
-            imagesc(depth_map);
             [map_points] = GetNewMapPoints(depth_map, kf_pose_estimate, KF_scaling, KF_depths);%  - origin is implied to be (0,0,0)?
             if ~isempty(map_points)
-                map_points = RadiusFilterMap(map_points, 0.1, min(0.06*size(map_points,1),40));
+                map_points = RadiusFilterMap(map_points, 0.1, min(0.06*size(map_points,1),15));
                 map = [map; map_points];
-                figure(3);
-                scatter3(map(:,1), map(:,2), map(:,3), 2, 'filled');
-                pause
             end
+%             PlotResults(KF_dsi, depth_map, map);
         end
         % Initialize new keyframe
         kf_pose_estimate = curr_pose_estimate;
@@ -87,3 +78,5 @@ while end_time < event_mat(end-1,1)
     last_pose_estimate = curr_pose_estimate;
     curr_pose_estimate = groundtruth_mat(groundtruth_idx,:);
 end
+
+PlotResults(KF_dsi, depth_map, map);
