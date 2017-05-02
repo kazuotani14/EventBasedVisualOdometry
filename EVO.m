@@ -53,7 +53,7 @@ while end_time < event_mat(end,1)
             CNT = KF_dsi(IND);
             [r,c,v] = ind2sub(size(KF_dsi),IND);
             depth_map = GetClusters(KF_dsi);
-            depth_map = MedianFilterDepthMap(depth_map, [3,3]);
+            depth_map = MedianFilterDepthMap(depth_map, [7,7]);
             scatter3(c,r,v,10,CNT);
             figure;
             imagesc(depth_map);
