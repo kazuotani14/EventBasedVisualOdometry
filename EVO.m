@@ -1,9 +1,11 @@
-load shapes_translation_events.mat
-load shapes_translation_groundtruth.mat
+% load shapes_translation_events.mat
+% load shapes_translation_groundtruth.mat
+load dynamic_6DoF_events.mat
+load dynamic_6DoF_groundtruth.mat
 load shapes_translation_calib.mat
 
-event_mat = event_mat(94799:end, :);
-groundtruth_mat = groundtruth_mat(186:end, :);
+% event_mat = event_mat(94799:end, :);
+% groundtruth_mat = groundtruth_mat(186:end, :);
 
 %%%RANDOM NOTES OF BEN, PLEASE IGNORE THESE FEW LINES
 % We need to do a sort of fake bootstrap to start the map?, so
@@ -31,6 +33,7 @@ max_depth = 1.75;
 KF_scaling = [];
 KF_dsi = {};
 KF_depths = [];
+KF_count = 0;
 
 map = [];
 
@@ -38,7 +41,7 @@ orig_calib = calib;
 %%%%%%%%%%%%%%%%%%%%%%%%% END VARIABLE INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%% MAIN LOOP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-while end_time < event_mat(end,1)
+while end_time < event_mat(end-1,1)
     [event_image, curr_pose_estimate, keyframe_bool] = GetEventImage(kf_pose_estimate, last_pose_estimate, curr_pose_estimate, event_mat);
     [event_image, calib] = CorrectDistortion(event_image, orig_calib);
 %     imshow(event_image);
@@ -46,6 +49,7 @@ while end_time < event_mat(end,1)
 %     pause
 
     if keyframe_bool
+        KF_count = KF_count + 1
         % add old DSI points to global map and reset DSI
         if groundtruth_idx ~= 1
             colormap parula
@@ -59,13 +63,13 @@ while end_time < event_mat(end,1)
             figure(2);
             imagesc(depth_map);
             [map_points] = GetNewMapPoints(depth_map, kf_pose_estimate, KF_scaling, KF_depths);%  - origin is implied to be (0,0,0)?
-            map_points = RadiusFilterMap(map_points, 0.07, min(0.06*size(map_points,1),30));
-%             map_points = RadiusFilterMap(map_points, 0.03, 5);
-            map = [map; map_points];
-            figure(3);
-            scatter3(map(:,1), map(:,2), map(:,3));
-            
-            pause
+            if ~isempty(map_points)
+                map_points = RadiusFilterMap(map_points, 0.07, min(0.06*size(map_points,1),20));
+                map = [map; map_points];
+                figure(3);
+                scatter3(map(:,1), map(:,2), map(:,3), 1, 'filled');
+                pause
+            end
         end
         % Initialize new keyframe
         kf_pose_estimate = curr_pose_estimate;
@@ -76,7 +80,10 @@ while end_time < event_mat(end,1)
         [KF_dsi] =  UpdateDSI(KF_dsi, event_image, T_kf, T_i, KF_depths, calib);
     end
 
-    groundtruth_idx = groundtruth_idx + 1
+    groundtruth_idx = groundtruth_idx + 1;
+    if mod(groundtruth_idx,25)==0
+        fprintf('Event Image #%d\n',groundtruth_idx);
+    end
     last_pose_estimate = curr_pose_estimate;
     curr_pose_estimate = groundtruth_mat(groundtruth_idx,:);
 end
