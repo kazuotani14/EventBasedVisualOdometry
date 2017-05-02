@@ -1,5 +1,5 @@
 %correct camera distortion on event image
-function [corrected_image] = CorrectDistortion(event_image, calib)
+function [corrected_image, new_calib] = CorrectDistortion(event_image, calib)
 
 	% [y,x] = ind2sub(size(event_image),find(event_image));
 
@@ -37,6 +37,10 @@ function [corrected_image] = CorrectDistortion(event_image, calib)
                                     'TangentialDistortion', tang_dist_vec);
 
 	[corrected_image ,newOrigin] = undistortImage(event_image, cameraParams, 'nearest', 'OutputView', 'full');
+
+	new_calib = calib
+	new_calib.cx = new_calib.cx - newOrigin(1);
+	new_calib.cy = new_calib.cy - newOrigin(2);
 
 	% figure;
 	% imshow(event_image);
