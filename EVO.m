@@ -48,6 +48,12 @@ while end_time < event_mat(end,1)
 	if keyframe_bool
 		% add old DSI points to global map and reset DSI
 		if groundtruth_idx ~= 1
+            colormap parula
+            IND = find(KF_dsi);
+            CNT = KF_dsi(IND);
+            [r,c,v] = ind2sub(size(KF_dsi),IND);
+            scatter3(c,r,KF_depths(v),10,CNT);
+            pause
 			[depth_map] = GetClusters(KF_dsi);
 			[map_points] = GetNewMapPoints(depth_map, kf_pose_estimate, KF_scaling, KF_depths);%  - origin is implied to be (0,0,0)?
 			map = [map; map_points];
@@ -61,7 +67,7 @@ while end_time < event_mat(end,1)
 
 		[T_kf, T_i] = FindPoseToKfH(kf_pose_estimate, curr_pose_estimate, calib);
 		[KF_dsi] =  UpdateDSI(KF_dsi, event_image, T_kf, T_i, KF_homographies, KF_depths, calib);
-	end
+    end
 
 	groundtruth_idx = groundtruth_idx + 1;
 	last_pose_estimate = curr_pose_estimate;
