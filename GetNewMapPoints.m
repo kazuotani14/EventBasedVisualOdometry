@@ -11,6 +11,8 @@ function [new_map_points] = GetNewMapPoints(depth_map, kf_pose, KF_scaling, KF_d
     % -------
     % map_points: set of points as 3D coordinates number of valid points x 3
 
+    new_map_points = [];
+
     kf_T = kf_pose(2:4)';
     kf_quat = kf_pose(5:8);
     kf_R = CustomQuat2RotM(kf_quat);
@@ -19,6 +21,9 @@ function [new_map_points] = GetNewMapPoints(depth_map, kf_pose, KF_scaling, KF_d
             zeros(1,3), 1]; %world to kf tform
 
     valid_idx = find(depth_map);
+    if length(valid_idx) == 0
+        return
+    end
 
     [valid_y, valid_x] = ind2sub(size(depth_map), valid_idx);
 
