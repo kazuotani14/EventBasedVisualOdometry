@@ -39,40 +39,38 @@ orig_calib = calib;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%% MAIN LOOP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 while end_time < event_mat(end,1)
-	[event_image, curr_pose_estimate, keyframe_bool] = GetEventImage(kf_pose_estimate, last_pose_estimate, curr_pose_estimate, event_mat);
-	[event_image, calib] = CorrectDistortion(event_image, orig_calib);
-	imshow(event_image);
+    [event_image, curr_pose_estimate, keyframe_bool] = GetEventImage(kf_pose_estimate, last_pose_estimate, curr_pose_estimate, event_mat);
+    [event_image, calib] = CorrectDistortion(event_image, orig_calib);
+    imshow(event_image);
 %     disp('event image');
 %     pause
 
-	if keyframe_bool
-		% add old DSI points to global map and reset DSI
-		if groundtruth_idx ~= 1
+    if keyframe_bool
+        % add old DSI points to global map and reset DSI
+        if groundtruth_idx ~= 1
             colormap parula
             IND = find(KF_dsi);
             CNT = KF_dsi(IND);
             [r,c,v] = ind2sub(size(KF_dsi),IND);
-			[depth_map] = GetClusters(KF_dsi);
+            [depth_map] = GetClusters(KF_dsi);
             scatter3(c,r,v,10,CNT);
             figure;
             imagesc(depth_map);
             pause
             figure;
-			[map_points] = GetNewMapPoints(depth_map, kf_pose_estimate, KF_scaling, KF_depths);%  - origin is implied to be (0,0,0)?
-			map = [map; map_points];
-		end
-
-		% Initialize new keyframe
-		kf_pose_estimate = curr_pose_estimate;
-		[KF_scaling, KF_homographies, KF_dsi, KF_depths] = DiscretizeKeyframe(event_image, min_depth, max_depth, N_planes, calib);
-	else
-		% update DSI
-
-		[T_kf, T_i] = FindPoseToKfH(kf_pose_estimate, curr_pose_estimate, calib);
-		[KF_dsi] =  UpdateDSI(KF_dsi, event_image, T_kf, T_i, KF_homographies, KF_depths, calib);
+            [map_points] = GetNewMapPoints(depth_map, kf_pose_estimate, KF_scaling, KF_depths);%  - origin is implied to be (0,0,0)?
+            map = [map; map_points];
+        end
+        % Initialize new keyframe
+        kf_pose_estimate = curr_pose_estimate;
+        [KF_scaling, KF_homographies, KF_dsi, KF_depths] = DiscretizeKeyframe(event_image, min_depth, max_depth, N_planes, calib);
+    else
+        % update DSI
+        [T_kf, T_i] = FindPoseToKfH(kf_pose_estimate, curr_pose_estimate);
+        [KF_dsi] =  UpdateDSI(KF_dsi, event_image, T_kf, T_i, KF_depths, calib);
     end
 
-	groundtruth_idx = groundtruth_idx + 1
-	last_pose_estimate = curr_pose_estimate;
-	curr_pose_estimate = groundtruth_mat(groundtruth_idx,:);
+    groundtruth_idx = groundtruth_idx + 1
+    last_pose_estimate = curr_pose_estimate;
+    curr_pose_estimate = groundtruth_mat(groundtruth_idx,:);
 end

@@ -14,6 +14,4 @@ filter = fspecial('gaussian', filt_size); % Sigma to be determined
 threshold_map = confidence_map > (imfilter(confidence_map, filter) - C);
 depth_map = pix_depth .* threshold_map; % Zero depth for pixels with low confidence
 
-
-
 end
