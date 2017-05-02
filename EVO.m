@@ -25,8 +25,8 @@ curr_pose_estimate = groundtruth_mat(groundtruth_idx,:);
 % H = 231; %Height of distortion corrected image
 
 N_planes = 50;  %Depth of DSI
-min_depth = 0.5;
-max_depth = 2.0;
+min_depth = 0.75;
+max_depth = 1.75;
 
 KF_scaling = [];
 KF_dsi = {};
@@ -41,7 +41,7 @@ orig_calib = calib;
 while end_time < event_mat(end,1)
     [event_image, curr_pose_estimate, keyframe_bool] = GetEventImage(kf_pose_estimate, last_pose_estimate, curr_pose_estimate, event_mat);
     [event_image, calib] = CorrectDistortion(event_image, orig_calib);
-    imshow(event_image);
+%     imshow(event_image);
 %     disp('event image');
 %     pause
 
@@ -52,7 +52,8 @@ while end_time < event_mat(end,1)
             IND = find(KF_dsi);
             CNT = KF_dsi(IND);
             [r,c,v] = ind2sub(size(KF_dsi),IND);
-            [depth_map] = GetClusters(KF_dsi);
+            depth_map = GetClusters(KF_dsi);
+            depth_map = MedianFilterDepthMap(depth_map, [1,1]);
             scatter3(c,r,v,10,CNT);
             figure;
             imagesc(depth_map);
