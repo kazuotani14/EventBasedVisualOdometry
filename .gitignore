@@ -6,3 +6,13 @@
 shapes_rotation_events.mat
 
 shapes_rotation_groundtruth.mat
+
+boxes_6dof_calib.mat
+
+boxes_6dof_events.mat
+
+boxes_6dof_groundtruth.mat
+
+dynamic_6DoF_events.mat
+
+dynamic_6DoF_groundtruth.mat
