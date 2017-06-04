@@ -1,0 +1,4 @@
+<launch>
+	<node pkg="evo" type="emvs_node" name="emvs_node" output="screen"/>
+	<node pkg="rosbag" type="play" name="play" args="/home/kazu/Downloads/shapes_6dof.bag"/>
+</launch>
