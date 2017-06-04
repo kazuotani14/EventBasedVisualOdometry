@@ -78,12 +78,40 @@ cv::Mat EmvsNode::undistortImage(const cv::Mat& input_image)
 	return output_image;
 }
 
-void EmvsNode::updateDSI()
+void EmvsNode::updateDsi()
 {
-	// Output image
+	// TODO break this up into smaller functions
+
+	// TODO Find transform between current pose and keyframe (use quat2rotm and Eigen)
+	// find world->kf, world->image. then do w->kf * inv(w->img) (3x4 matrices)
+	// kf_T = kf_pose(2:4)';
+	// kf_quat = kf_pose(5:8);
+	// kf_R = CustomQuat2RotM(kf_quat);
+	// kf_M = [kf_R, kf_T; 0 0 0 1];
+	//
+	// i_T = i_pose(2:4)';
+	// i_quat = i_pose(5:8);
+	// i_R = CustomQuat2RotM(i_quat);
+	// i_M = [i_R, i_T; 0 0 0 1];
+
+	//TODO precompute some reused matrices
+	// R_transpose = T_i_in_kf(1:3,1:3)';
+	// R_t_n = R_transpose*t*n';
+
+	// TODO for each plane, compute homography from image to planes
+	// Warp image and add to kf_dsi_ (should kf_dsi_ be eigen matrices?)
 	// cv::Mat im_out;
 	// Warp source image to destination based on homography
 	// cv::warpPerspective(im_src, im_out, h, im_dst.size());
+}
+
+void EmvsNode::addDsiToMap()
+{
+	//GetClusters: gaussian blur on each layer, then take max from each layer to return wxh depth map (opencv)
+	//MedianFilter: median filter on depth map (opencv)
+	//ProjectDsiPointsTo3d: get 3d point coordinates from filtered depth map (manually?)
+	//RadiusFilter: radius outlier removal of resulting (use pcl)
+	//Add point to pointcloud, publish
 }
 
 int main(int argc, char **argv)

@@ -14,6 +14,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <Eigen/Dense>
 
 #include "keyframe_dsi.h"
 
@@ -61,7 +62,8 @@ private:
 	void poseCallback(const geometry_msgs::PoseStamped& msg);
 	// void camerainfoCallback(const sensor_msgs::CameraInfo& msg);
 	cv::Mat undistortImage(const cv::Mat& input_image);
-	void updateDSI();
+	void updateDsi();
+	void addDsiToMap();
 };
 
 #endif
