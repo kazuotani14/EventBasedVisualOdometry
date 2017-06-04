@@ -1,5 +1,5 @@
 %This function is to take the pose of the kf and the pose of
-% the event image and find the transforms between the 2
+% the event image and find the transforms between the two
 
 % ref: http://16720.courses.cs.cmu.edu/lec/transformations.pdf
 function [kf_M, i_M] = FindPoseToKfH(kf_pose, i_pose)
