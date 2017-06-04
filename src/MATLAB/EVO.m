@@ -1,6 +1,6 @@
-%%%%%%%%%%%%%%%%%%%%%%% START LOAD DATASET %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% START LOAD DATASET
 
-global event_mat;
+global event_mat; % why is this here? 
 
 % dataset = 'shapes_rotation';
 % dataset = 'shapes_translation';
@@ -10,13 +10,13 @@ dataset = 'boxes_6dof';
 load(strcat(dataset,'_events.mat'), 'event_mat');
 load(strcat(dataset,'_groundtruth.mat'), 'groundtruth_mat');
 load(strcat(dataset,'_calib.mat'), 'calib');
+disp('Done loading data!');
 
+% For starting from specific points in the dataset
 % event_mat = event_mat(94799:end, :);
 % groundtruth_mat = groundtruth_mat(186:end, :);
-%%%%%%%%%%%%%%%%%%%%%%% END LOAD DATASET %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-%%%%%%%%%%%%%%%%%%%%%%% START VARIABLE INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% START VARIABLE INIT 
 end_time = 0;
 % % This is a fake kf pose to simply force the first event image to be a keyframe
 first_kf_pose = -1000*ones(1,8);
@@ -27,12 +27,9 @@ last_pose_estimate = first_kf_pose;
 groundtruth_idx = 1;
 curr_pose_estimate = groundtruth_mat(groundtruth_idx,:);
 
-% W = 309; %Width of distortion corrected image
-% H = 231; %Height of distortion corrected image
-
 N_planes = 50;  %Depth of DSI
-min_depth = 0.75;
-max_depth = 1.75;
+min_depth = 0.75; % [m]
+max_depth = 1.75; % [m]
 
 KF_scaling = [];
 KF_dsi = {};
@@ -43,15 +40,12 @@ frame_limit = 3000; % Limit number of event images used
 map = [];
 
 orig_calib = calib;
-%%%%%%%%%%%%%%%%%%%%%%%%% END VARIABLE INIT %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%% MAIN LOOP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% MAIN LOOP
 while end_time < event_mat(end-1,1)
     [event_image, curr_pose_estimate, keyframe_bool] = GetEventImage(kf_pose_estimate, last_pose_estimate, curr_pose_estimate);
     [event_image, calib] = CorrectDistortion(event_image, orig_calib);
-%     imshow(event_image);
-%     disp('event image');
-%     pause
+%     imshow(event_image); disp('event image'); pause
 
     if keyframe_bool
         KF_count = KF_count + 1;
@@ -60,7 +54,7 @@ while end_time < event_mat(end-1,1)
         if groundtruth_idx ~= 1
             depth_map = GetClusters(KF_dsi);
             depth_map = MedianFilterDepthMap(depth_map, [7,7]);
-            [map_points] = GetNewMapPoints(depth_map, kf_pose_estimate, KF_scaling, KF_depths);%  - origin is implied to be (0,0,0)?
+            [map_points] = GetNewMapPoints(depth_map, kf_pose_estimate, KF_scaling, KF_depths);
             if ~isempty(map_points)
                 map_points = RadiusFilterMap(map_points, 0.1, min(0.06*size(map_points,1),15));
                 map = [map; map_points];
@@ -89,6 +83,5 @@ while end_time < event_mat(end-1,1)
     curr_pose_estimate = groundtruth_mat(groundtruth_idx,:);
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%% END MAIN LOOP %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 PlotResults(KF_dsi, depth_map, map);
