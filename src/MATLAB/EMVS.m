@@ -1,6 +1,6 @@
 %%% START LOAD DATASET
 
-global event_mat; % why is this here? 
+global event_mat; % why is this here?
 
 % Make sure data folder is added to path
 % dataset = 'shapes_rotation';
@@ -17,7 +17,7 @@ disp('Done loading data!');
 % event_mat = event_mat(94799:end, :);
 % groundtruth_mat = groundtruth_mat(186:end, :);
 
-%%% START VARIABLE INIT 
+%%% START VARIABLE INIT
 end_time = 0;
 % % This is a fake kf pose to simply force the first event image to be a keyframe
 first_kf_pose = -1000*ones(1,8);
@@ -75,11 +75,11 @@ while end_time < event_mat(end-1,1)
     if mod(groundtruth_idx,25)==0
         fprintf('Event Image #%d\n',groundtruth_idx);
     end
-    
+
     if mod(groundtruth_idx, frame_limit)==0
         break;
     end
-    
+
     last_pose_estimate = curr_pose_estimate;
     curr_pose_estimate = groundtruth_mat(groundtruth_idx,:);
 end

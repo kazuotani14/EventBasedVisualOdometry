@@ -14,8 +14,12 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   image_transport
   cv_bridge
+  pcl_ros
+  pcl_conversions
+  pcl_msgs
 )
 
+find_package(PCL REQUIRED)
 find_package(OpenCV REQUIRED)
 
 ###################################
@@ -30,8 +34,10 @@ find_package(OpenCV REQUIRED)
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp rospy std_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs pcl_ros
+  DEPENDS PCL
 )
+
 
 ###########
 ## Build ##
@@ -42,6 +48,12 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
+)
+
+link_directories(
+	${PCL_LIBRARY_DIRS}
 )
 
 ## Declare a C++ executable
@@ -49,7 +61,11 @@ add_executable(emvs_node src/cpp/emvs_node.cpp
 			   			 src/cpp/keyframe_dsi.cpp
 						 src/cpp/matlab_utils.cpp)
 add_executable(image_converter src/cpp/image_converter.cpp)
+add_executable(test_pcl src/cpp/test_pcl.cpp)
+add_executable(test_opencv src/cpp/test_opencv.cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(emvs_node ${catkin_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(emvs_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRARIES})
 target_link_libraries(image_converter ${catkin_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(test_pcl ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(test_opencv ${catkin_LIBRARIES} ${OpenCV_LIBS})

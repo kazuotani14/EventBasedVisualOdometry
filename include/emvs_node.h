@@ -5,16 +5,22 @@
 
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <dvs_msgs/Event.h>
 #include <dvs_msgs/EventArray.h>
 
+//OpenCV
 #include <cv.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <Eigen/Dense>
+
+// PCL specific includes
+#include <sensor_msgs/PointCloud2.h>
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
 
 #include "keyframe_dsi.h"
 
@@ -33,6 +39,8 @@ double fy = 198.8288204700886;
 
 static const std::string OPENCV_WINDOW = "Event image";
 
+typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+
 // Just put algorithm in here for now, separate later
 class EmvsNode
 {
@@ -46,6 +54,9 @@ private:
 	ros::Subscriber camera_info_sub_;
 	ros::Subscriber ground_truth_sub_;
 	ros::Subscriber imu_sub_;
+
+	ros::Publisher pointcloud_pub_;
+	PointCloud map_points_;
 
 	// sensor_msgs::CameraInfo camera_info_;
 	// bool camera_info_received_;

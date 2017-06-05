@@ -15,6 +15,7 @@ public:
 	KeyframeDSI(double im_height, double im_width, double min_depth, double max_depth,
 				int N_planes, double fx, double fy);
 	void resetDSI();
+	cv::Mat getDepthmap();
 
 private:
 	double min_depth_, max_depth_; //[m]
@@ -26,6 +27,7 @@ private:
 	std::vector<double> planes_depths_; //depths of each layer [m]
 	std::vector<cv::Mat> dsi_; //data structure holding voxel grid values of disparity space image
 
+	void findMaxVals(const std::vector<cv::Mat>& images, cv::Mat& max_vals, cv::Mat& max_locs);
 
 };
 

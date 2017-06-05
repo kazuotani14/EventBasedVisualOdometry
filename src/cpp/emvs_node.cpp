@@ -9,6 +9,9 @@ EmvsNode::EmvsNode()
 	ground_truth_sub_ = nh_.subscribe("optitrack/davis", 100, &EmvsNode::poseCallback, this);
 	// camera_info_sub_ = nh_.subscribe("dvs/camera_info", 1, &EmvsNode::camerainfoCallback, this);
 
+	pointcloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2> ("map_points", 1);
+	map_points_.height = 1;
+
 	latest_event_image_ = cv::Mat::zeros(sensor_rows, sensor_cols, CV_16SC1);
 	new_event_image_ = cv::Mat::zeros(sensor_rows, sensor_cols, CV_16SC1);
 
@@ -107,7 +110,10 @@ void EmvsNode::updateDsi()
 
 void EmvsNode::addDsiToMap()
 {
+	//TODO make these functions!
 	//GetClusters: gaussian blur on each layer, then take max from each layer to return wxh depth map (opencv)
+	
+
 	//MedianFilter: median filter on depth map (opencv)
 	//ProjectDsiPointsTo3d: get 3d point coordinates from filtered depth map (manually?)
 	//RadiusFilter: radius outlier removal of resulting (use pcl)
