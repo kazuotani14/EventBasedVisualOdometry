@@ -1,7 +1,7 @@
 % This function takes in the DSI, finds the local maxima of the
 % ray density function, and returns depth-map of most confident points
 % Input - KF_DSI (w x h x N)
-% OUtput - depth_map (w x h)
+% Output - depth_map (w x h)
 
 function [depth_map] = GetClusters(KF_DSI)
 

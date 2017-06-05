@@ -12,9 +12,16 @@ KeyframeDSI::KeyframeDSI(double im_height, double im_width, double min_depth, do
 	planes_depths_.reserve(N_planes_);
 	dsi_.reserve(N_planes_);
 
-	// Find uniformly space depths
-	// Uniform depth
+	// Find uniformly spaced planes, either in depth or inverse depth
+	// *Original EMVS used depth - "we used depth instead of inverse depth in the
+	// DSI since it provided better results in scenes with finite depth variations"
+	// *EVO used inverse depth - "allow for mapping far away objects, we discretize
+	// the DSI volume using depth planes uniformly spaced in inverse depth"
+	// *EMVS used N=100, EVO used N=50
+
+	// Uniform depth 
 	planes_depths_ = linspace(min_depth_, max_depth_, N_planes_);
+
 	// Uniform inverse depth
 	// std::vector<double> planes_depths = linspace(1/min_depth_, 1/max_depth_, N_planes_);
 	// std::for_each(planes_depths.begin(), planes_depths.end(), [](double& d){ d = 1/d;});
