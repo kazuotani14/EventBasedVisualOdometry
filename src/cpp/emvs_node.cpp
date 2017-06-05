@@ -111,13 +111,17 @@ void EmvsNode::updateDsi()
 void EmvsNode::addDsiToMap()
 {
 	//TODO make these functions!
-	//GetClusters: gaussian blur on each layer, then take max from each layer to return wxh depth map (opencv)
-	
+	//getDepthmap: gaussian blur on each layer, then take max from each layer to return wxh depth map (opencv)
+	cv::Mat depth_map = kf_dsi_.getDepthmap();
 
-	//MedianFilter: median filter on depth map (opencv)
 	//ProjectDsiPointsTo3d: get 3d point coordinates from filtered depth map (manually?)
+	PointCloud new_points;
+
 	//RadiusFilter: radius outlier removal of resulting (use pcl)
-	//Add point to pointcloud, publish
+
+
+	//Add points to pointcloud, publish
+	map_points_ += new_points;
 }
 
 int main(int argc, char **argv)

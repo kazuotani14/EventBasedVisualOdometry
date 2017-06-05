@@ -47,29 +47,10 @@ void KeyframeDSI::resetDSI()
 		dsi_[i] = cv::Scalar(0);
 }
 
-// TODO take out images from inputs? put outside class?
-// TODO find a better/faster way to do this
-void KeyframeDSI::findMaxVals(const std::vector<cv::Mat>& images, cv::Mat& max_vals, cv::Mat& max_locs)
-{
-	assert(images[0].rows == max_vals.rows);
-	assert(images[0].cols == max_vals.cols);
-
-	for(int i=0; i<images[0].rows; i++){
-		for(int j=0; j<images[0].cols; j++){
-			for(int z=0; z<images.size(); z++){
-				if(images[z].at<short>(i,j) > max_vals.at<short>(i,j)){
-					max_vals.at<short>(i,j) = images[z].at<short>(i,j);
-					max_locs.at<short>(i,j) = z;
-				}
-			}
-		}
-	}
-}
-
 cv::Mat KeyframeDSI::getDepthmap()
 {
 	int gauss_filter_size = 5;
-	int median_filter_size = 5; //window size must be odd
+	int median_filter_size = 15; //window size must be odd
 
 	// 1. Gaussian filter on each layer
 	cv::Mat gauss_filtered = cv::Mat(im_height_, im_width_, CV_16SC1, cv::Scalar(0));
@@ -84,17 +65,16 @@ cv::Mat KeyframeDSI::getDepthmap()
 	// 2. Find max across all of the images, and their location
 	//TODO figure out better way to do this
 	cv::Mat max_vals, max_locs;
-	max_vals = cv::Mat(im_height_, im_width_, CV_16SC1, cv::Scalar(0));
-	max_locs = max_vals.clone();
-	findMaxVals(dsi_, max_vals, max_locs);
+	findMaxVals3D(dsi_, max_vals, max_locs);
 
 	// TODO 3. threshold on max to get intermediate depthmap
 	cv::Mat interm_depth_map = cv::Mat(im_height_, im_width_, CV_16SC1, cv::Scalar(0));
+	//interm_depth_map = confidence_map > (imfilter(confidence_map, filter) - C); // C=-2
 
 	// 4. Median filter on depth map
 	cv::Mat final_depth_map = cv::Mat(im_height_, im_width_, CV_16SC1, cv::Scalar(0));
 	cv::medianBlur(interm_depth_map, final_depth_map, median_filter_size);
-	// matlab code finds median over non-zero values
+	// TODO matlab code finds median over non-zero values - may have to implement custom
 
 	return final_depth_map;
 }

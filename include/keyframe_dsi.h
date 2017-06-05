@@ -8,6 +8,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "matlab_utils.h"
+#include "filters.h"
 
 class KeyframeDSI
 {
@@ -26,8 +27,6 @@ private:
 	std::vector<std::vector<double> > planes_scaling_; //scaling of size of each layer (in world units) wrt to pixels
 	std::vector<double> planes_depths_; //depths of each layer [m]
 	std::vector<cv::Mat> dsi_; //data structure holding voxel grid values of disparity space image
-
-	void findMaxVals(const std::vector<cv::Mat>& images, cv::Mat& max_vals, cv::Mat& max_locs);
 
 };
 

@@ -23,6 +23,7 @@
 #include <pcl/point_types.h>
 
 #include "keyframe_dsi.h"
+#include "filters.h"
 
 
 // TODO read camera info from topic
