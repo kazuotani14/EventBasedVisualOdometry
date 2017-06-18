@@ -25,8 +25,7 @@
 
 #include "keyframe_dsi.h"
 #include "filters.h"
-#include "opencv_defs.h"
-#include "matrix_utils.h"
+#include "utilities.h"
 
 namespace emvs{
 
@@ -65,12 +64,11 @@ private:
 	// bool camera_info_received_;
 
 	KeyframeDSI kf_dsi_;
-	bool first_;
 	bool events_updated_;
 
 	cv::Mat latest_event_image_;
 	cv::Mat new_event_image_;
-	geometry_msgs::PoseStamped latest_pose_estimate_;
+	geometry_msgs::PoseStamped last_pose_;
 
 	static constexpr double new_kf_dist_thres_ = 0.05; //[m]
 	Eigen::Vector3d kf_pos_;
@@ -83,7 +81,9 @@ private:
 	void updateDsi(cv::Mat event_img);
 	void addDsiToMap();
 	bool checkForNewKeyframe(const geometry_msgs::PoseStamped& pose);
+
 };
+
 
 } // end namespace emvs
 

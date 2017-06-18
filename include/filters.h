@@ -14,7 +14,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include "opencv_defs.h"
+#include "utilities.h"
 
 namespace emvs{
 

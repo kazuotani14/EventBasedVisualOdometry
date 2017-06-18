@@ -8,9 +8,10 @@
 #include <cv.h>
 #include <opencv2/opencv.hpp>
 
-#include "matrix_utils.h"
 #include "filters.h"
-#include "opencv_defs.h"
+#include "utilities.h"
+
+typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 namespace emvs{
 
@@ -20,7 +21,8 @@ public:
 	KeyframeDSI(double im_height, double im_width, double min_depth, double max_depth,
 				int N_planes, double fx, double fy);
 	void resetDSI();
-	void getDepthmap(cv::Mat& output);
+
+	PointCloud getFiltered3dPoints();
 
 	std::vector<std::vector<double> > planes_scaling_; //scaling of size of each layer (in world units) wrt to pixels
 	std::vector<double> planes_depths_; //depths of each layer [m]
@@ -31,6 +33,10 @@ private:
 	double min_depth_, max_depth_; //[m]
 	double im_height_, im_width_;
 	double fx_, fy_; //[pixels]
+
+	// Intermediate steps for getting filtered 3d points in local frame
+	void getDepthmap(cv::Mat& output);
+	void projectDepthmapTo3d(PointCloud& output);
 
 };
 

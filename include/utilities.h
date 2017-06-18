@@ -1,8 +1,5 @@
-// C++ implementations of matlab functions (helpers)
-// TODO move this stuff into its own namespace?
-
-#ifndef _MATLAB_UTILS_H_
-#define _MATLAB_UTILS_H_
+#ifndef _OPENCV_DEFS_H_
+#define _OPENCV_DEFS_H_
 
 #include <vector>
 #include <iostream>
@@ -13,9 +10,14 @@
 #include <opencv2/opencv.hpp>
 #include <Eigen/Dense>
 
-#include "opencv_defs.h"
+#define EVENT_IMAGE_TYPE CV_8U
+#define DOUBLE_TYPE CV_64F
+
+static const std::string OPENCV_WINDOW = "Event image";
 
 namespace emvs{
+
+void showNormalizedImage(const cv::Mat& image, int milliseconds=1);
 
 // From: https://gist.github.com/jmbr/2375233
 // TODO look at link for possible improvements
@@ -37,6 +39,8 @@ cv::Mat quat2rotm(double q_x, double q_y, double q_z, double q_w);
 
 cv::Mat quat2rotm(const Eigen::Vector4d q);
 
-} // end namespace emvs
+cv::Mat makeTransformMatrix(double x, double y, double z, double qx, double qy, double qz, double qw);
+
+}
 
 #endif

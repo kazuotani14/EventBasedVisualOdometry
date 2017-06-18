@@ -11,7 +11,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <dvs_msgs/Event.h>
 #include <dvs_msgs/EventArray.h>
-#include "opencv_defs.h"
+#include "utilities.h"
 
 class ImageConverter
 {
