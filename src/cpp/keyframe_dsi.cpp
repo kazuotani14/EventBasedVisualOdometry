@@ -61,21 +61,27 @@ void KeyframeDSI::getDepthmap(cv::Mat& output)
 	int median_filter_size = 15; //window size must be odd
 
 	// visualize DSI
-	for(int i=0; i<N_planes_; i++)
-	{
-		cv::Mat1b idx = dsi_[i] > 0;
-		dsi_[i].setTo(255, idx);
-		cv::imshow(OPENCV_WINDOW, dsi_[i]);
-		cv::waitKey(100);
-	}
+	// std::cout << "showing DSI layers..." << std::endl;
+	// for(int i=0; i<N_planes_; i++)
+	// {
+	// 	std::cout << i << std::endl;
+	// 	cv::Mat1b idx = dsi_[i] > 0;
+	// 	dsi_[i].setTo(255, idx);
+	// 	cv::imshow(OPENCV_WINDOW, dsi_[i]);
+	// 	cv::waitKey(10);
+	// }
+
 
 	// 1. Gaussian filter on each layer
+	std::cout << "showing gaussian filtered dsi." << std::endl;
 	cv::Mat filtered(im_height_, im_width_, EVENT_IMAGE_TYPE, cv::Scalar(0));
 	for(int i=0; i<N_planes_; i++)
 	{
 		cv::GaussianBlur(dsi_[i], filtered, cv::Size(gauss_filter_size, gauss_filter_size), 3);
 		dsi_[i] = filtered;
-
+		cv::normalize(filtered, filtered, 0, 255, cv::NORM_MINMAX);
+		cv::imshow(OPENCV_WINDOW, filtered);
+		cv::waitKey(100);
 	}
 
 	// 2. Find max across all of the images, and their location
@@ -86,8 +92,9 @@ void KeyframeDSI::getDepthmap(cv::Mat& output)
 	// std::cout << "\n\nmax_locs: \n" << max_locs << "\n";
 
 	// TODO 3. threshold on max to get intermediate depthmap
+
 	// cv::Mat interm_depth_map = cv::Mat(im_height_, im_width_, EVENT_IMAGE_TYPE, cv::Scalar(0));
-	//interm_depth_map = confidence_map > (imfilter(confidence_map, filter) - C); // C=-2
+	// interm_depth_map = confidence_map > (imfilter(confidence_map, filter) - C); // C=-2
 
 	// 4. Median filter on depth map
 	// cv::Mat final_depthmap(im_height_, im_width_, EVENT_IMAGE_TYPE, cv::Scalar(0));

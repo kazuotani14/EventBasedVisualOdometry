@@ -6,7 +6,7 @@ using cv::Mat;
 using cv::Mat_;
 
 EmvsNode::EmvsNode()
-	: first_(true),
+	: first_(true), events_updated_(false),
       kf_dsi_(sensor_rows, sensor_cols, min_depth, max_depth, N_planes, fx, fy)
 {
 	events_sub_ = nh_.subscribe("dvs/events", 1000, &EmvsNode::eventCallback, this);
@@ -29,7 +29,7 @@ EmvsNode::~EmvsNode()
 
 void EmvsNode::eventCallback(const dvs_msgs::EventArray& msg)
 {
-	//TODO Make better way to get event image rather than just waiting for state estimate
+	//TODO incorporate timestamp checks to deal with slow update rate (about 6Hz)
 
 	// ROS_INFO("Events[i]: %d, %d", static_cast<int>(msg.events[i].y),  static_cast<int>(msg.events[i].x));
 	// ROS_INFO("EventArray size: %d", static_cast<int>(msg.events.size()));
@@ -49,12 +49,15 @@ void EmvsNode::poseCallback(const geometry_msgs::PoseStamped& msg)
 
 	if(new_kf || first_)
 	{
-		// TODO add current DSI to map, if not first time
-		addDsiToMap();
-		kf_dsi_.resetDSI();
+		if(events_updated_)
+		{
+			// TODO add current DSI to map, if not first time
+			addDsiToMap();
+			kf_dsi_.resetDSI();
 
-		new_event_image_.setTo(0);
-
+			new_event_image_.setTo(0);
+		}
+		events_updated_ = false;
 		first_ = false; // HACK get rid of this TODO
 	}
 	else
@@ -62,6 +65,7 @@ void EmvsNode::poseCallback(const geometry_msgs::PoseStamped& msg)
 		// TODO Find out why event images aren't shown in the first few secs
 		if(cv::countNonZero(new_event_image_) > 0)
 		{
+			events_updated_ = true;
 			// std::cout << "event image: " << cv::countNonZero(new_event_image_) << std::endl;
 			latest_event_image_ = undistortImage(new_event_image_);
 			updateDsi(latest_event_image_); // this takes time, so put it on a thread? TODO
@@ -119,6 +123,7 @@ void EmvsNode::updateDsi(Mat event_img)
 
 	// TODO For each plane, compute homography from image to plane, warp event image to plane and add
 	Mat H_i2z;
+	// std::cout << "Showing dsi" << std::endl;
 	for(int i=0; i<kf_dsi_.N_planes_; i++)
 	{
 		double depth = kf_dsi_.planes_depths_[i];
@@ -135,7 +140,11 @@ void EmvsNode::updateDsi(Mat event_img)
 		cv::warpPerspective(event_img, event_img_warped, H_i2z, kf_dsi_.dsi_[i].size());
 
 		kf_dsi_.dsi_[i] += event_img_warped;
-		// std::cout << "warped event image: " << cv::countNonZero(event_img_warped) << std::endl;
+		// std::cout << "dsi[" << i << "]: " << cv::countNonZero(kf_dsi_.dsi_[i]) << std::endl;
+
+		// cv::normalize(event_img_warped, event_img_warped, 0, 255, cv::NORM_MINMAX);
+		// cv::imshow(OPENCV_WINDOW, event_img_warped);
+		// cv::waitKey(100);
 	}
 }
 
@@ -152,6 +161,7 @@ void EmvsNode::addDsiToMap()
 
 	//ProjectDsiPointsTo3d: get 3d point coordinates from filtered depth map (manually?) TODO
 	PointCloud new_points;
+
 
 	//RadiusFilter: radius outlier removal of resulting (use pcl) TODO heck this
 	// radiusFilter(new_points);

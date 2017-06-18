@@ -80,8 +80,8 @@ int main(int argc, char** argv)
 	// std::cout << "max_vals:\n" << max_vals << "\n\n";
 	// std::cout << "max_locs:\n" << max_locs << "\n\n";
 
-	cv::imshow(OPENCV_WINDOW, max_vals);
-	cv::waitKey(0);
+	// cv::imshow(OPENCV_WINDOW, max_vals);
+	// cv::waitKey(1);
 
 	return 0;
 }

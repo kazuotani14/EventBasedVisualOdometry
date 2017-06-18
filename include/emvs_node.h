@@ -66,6 +66,7 @@ private:
 
 	KeyframeDSI kf_dsi_;
 	bool first_;
+	bool events_updated_;
 
 	cv::Mat latest_event_image_;
 	cv::Mat new_event_image_;
