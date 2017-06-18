@@ -40,6 +40,7 @@ double max_depth = 1.5;
 double N_planes = 50;
 double fx = 199.0923665423112;
 double fy = 198.8288204700886;
+double confidence_map_cushion = 2;
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 

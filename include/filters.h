@@ -21,7 +21,7 @@ namespace emvs{
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 void radiusFilter(PointCloud cloud, double search_radius=0.8, int min_neighbors=2);
-void findMaxVals3D(const std::vector<cv::Mat>& images, cv::Mat& output);
+void findMaxVals3D(const std::vector<cv::Mat>& images, cv::Mat& max_depths, cv::Mat& max_vals);
 
 } // end namespace emvs
 

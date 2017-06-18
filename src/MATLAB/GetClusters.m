@@ -5,11 +5,11 @@
 
 function [depth_map] = GetClusters(KF_DSI)
 
+[confidence_map, pix_depth] = max(KF_DSI,[],3);
+
 C = -2;
 filt_size = 5;
 filter = fspecial('gaussian', filt_size); % Sigma to be determined
-
-[confidence_map, pix_depth] = max(KF_DSI,[],3);
 
 threshold_map = confidence_map > (imfilter(confidence_map, filter) - C);
 depth_map = pix_depth .* threshold_map; % Zero depth for pixels with low confidence
