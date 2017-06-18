@@ -16,7 +16,7 @@
 
 #include "utilities.h"
 
-namespace emvs{
+namespace emvs{     
 
 // Removes outlier points from pointcloud - check for >threshold # of neighbors
 PointCloud radiusFilter(PointCloud& cloud, double search_radius=0.8, int min_neighbors=2);

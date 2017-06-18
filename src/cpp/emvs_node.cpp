@@ -2,6 +2,7 @@
 
 namespace emvs{
 
+
 EmvsNode::EmvsNode()
 	: events_updated_(false),
       kf_dsi_(sensor_rows, sensor_cols, min_depth, max_depth, N_planes, fx, fy)

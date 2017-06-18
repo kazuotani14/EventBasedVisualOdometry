@@ -47,6 +47,11 @@ const double fx = 199.0923665423112;
 const double fy = 198.8288204700886;
 
 // TODO separate algorithm and ROS node as much as possible
+
+/*! Implementation of event-based multi-view stereo algorithm.
+ 	Inputs: events and pose estimates
+ 	Outputs: pointcloud
+*/
 class EmvsNode
 {
 public:

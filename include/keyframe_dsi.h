@@ -19,6 +19,9 @@ const int gauss_filter_size = 5;
 const int guass_filter_sigma = 3;
 const int median_filter_size = 15; //window size must be odd
 
+/*! Disparity space image for keyframe in EMVS algorithm.
+	Keeps a discretized "voxel grid" of space in front of keyframe.
+*/
 class KeyframeDSI
 {
 public:
