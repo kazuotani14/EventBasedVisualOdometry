@@ -61,12 +61,12 @@ add_executable(emvs_node src/cpp/emvs_node.cpp
 			   			 src/cpp/keyframe_dsi.cpp
 						 src/cpp/filters.cpp
            src/cpp/utilities.cpp)
-add_executable(image_converter src/cpp/image_converter.cpp)
+add_executable(test_image_converter src/cpp/test_image_converter.cpp)
 add_executable(test_pcl src/cpp/test_pcl.cpp)
 add_executable(test_opencv src/cpp/test_opencv.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(emvs_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRARIES})
-target_link_libraries(image_converter ${catkin_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(test_image_converter ${catkin_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(test_pcl ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 target_link_libraries(test_opencv ${catkin_LIBRARIES} ${OpenCV_LIBS})

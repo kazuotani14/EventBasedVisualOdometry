@@ -11,32 +11,45 @@
 #include "filters.h"
 #include "utilities.h"
 
-typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+static const double confidence_map_cushion = 2;
 
 namespace emvs{
+
+const int gauss_filter_size = 5;
+const int guass_filter_sigma = 3;
+const int median_filter_size = 15; //window size must be odd
 
 class KeyframeDSI
 {
 public:
 	KeyframeDSI(double im_height, double im_width, double min_depth, double max_depth,
 				int N_planes, double fx, double fy);
-	void resetDSI();
 
+	void resetDSI();
 	PointCloud getFiltered3dPoints();
 
-	std::vector<std::vector<double> > planes_scaling_; //scaling of size of each layer (in world units) wrt to pixels
-	std::vector<double> planes_depths_; //depths of each layer [m]
-	std::vector<cv::Mat> dsi_; //data structure holding voxel grid values of disparity space image
-	int N_planes_;
+	int getPlaneDepth(const int layer);
+	void addToDsi(const cv::Mat& events, const int layer);
+
+	const int N_planes_;
 
 private:
-	double min_depth_, max_depth_; //[m]
-	double im_height_, im_width_;
-	double fx_, fy_; //[pixels]
+	double min_depth_, max_depth_; // [m]
+	double im_height_, im_width_; // [pixels]
+	double fx_, fy_; // [pixels]
+
+
+	// Mapping of size of each layer: pixels -> meters
+	std::vector<std::vector<double> > planes_scaling_;
+	// Depths of each layer [m]
+	std::vector<double> planes_depths_;
+	// Holds voxel grid values of disparity space image
+	std::vector<cv::Mat> dsi_;
+
 
 	// Intermediate steps for getting filtered 3d points in local frame
 	void getDepthmap(cv::Mat& output);
-	void projectDepthmapTo3d(PointCloud& output);
+	void projectDepthmapTo3d(cv::Mat& depthmap, PointCloud& points_camera_frame);
 
 };
 

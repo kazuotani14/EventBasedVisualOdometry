@@ -44,4 +44,4 @@ cv::Mat makeTransformMatrix(double x, double y, double z, double qx, double qy, 
 	return M;
 }
 
-}
+} // end namespace emvs

@@ -69,7 +69,7 @@ int main(int argc, char** argv)
 		// cv::waitKey(500);
 	}
 
-	//TODO figure out better way to do this
+	//figure out better way to do this
 	// 2. Find max across all of the images, and their location
 	cv::Mat max_vals, max_locs;
 	max_vals = cv::Mat(image_h, image_w, CV_16SC1, cv::Scalar(0));

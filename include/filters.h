@@ -18,10 +18,11 @@
 
 namespace emvs{
 
-typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+// Removes outlier points from pointcloud - check for >threshold # of neighbors
+PointCloud radiusFilter(PointCloud& cloud, double search_radius=0.8, int min_neighbors=2);
 
-void radiusFilter(PointCloud cloud, double search_radius=0.8, int min_neighbors=2);
-void findMaxVals3D(const std::vector<cv::Mat>& images, cv::Mat& max_depths, cv::Mat& max_vals);
+// Given a 3D matrix (stack of images), find the locations and values of the pixel-wise maximums
+void findMaxVals3D(const std::vector<cv::Mat>& images, cv::Mat& max_layers, cv::Mat& max_vals);
 
 } // end namespace emvs
 

@@ -2,22 +2,23 @@
 
 namespace emvs{
 
-void radiusFilter(PointCloud cloud, double search_radius, int min_neighbors) // TODO tune these params
+// TODO tune these parameters?
+PointCloud radiusFilter(PointCloud& cloud, double search_radius, int min_neighbors)
 {
-	pcl::RadiusOutlierRemoval<pcl::PointXYZ> outrem;
 	PointCloud::Ptr cloud_ptr(&cloud);
-	PointCloud::Ptr cloud_filtered(new PointCloud);
+	PointCloud cloud_filtered;
+	pcl::RadiusOutlierRemoval<pcl::PointXYZ> outrem;
 
 	outrem.setInputCloud(cloud_ptr);
 	outrem.setRadiusSearch(search_radius);
 	outrem.setMinNeighborsInRadius(min_neighbors);
-	outrem.filter(*cloud_filtered);
+	outrem.filter(cloud_filtered);
 
-	cloud = *cloud_filtered; // TODO make sure this is ok
+	return cloud_filtered;
 }
 
 // TODO find a better/faster way to do this
-void findMaxVals3D(const std::vector<cv::Mat>& images, cv::Mat& max_depths, cv::Mat& max_vals)
+void findMaxVals3D(const std::vector<cv::Mat>& images, cv::Mat& max_layers, cv::Mat& max_vals)
 {
 	int im_height = images[0].rows;
 	int im_width = images[0].cols;
@@ -26,7 +27,7 @@ void findMaxVals3D(const std::vector<cv::Mat>& images, cv::Mat& max_depths, cv::
 		for(int j=0; j<im_width; j++){
 			for(int z=0; z<images.size(); z++){
 				if(static_cast<int>(images[z].at<uchar>(i,j)) > static_cast<int>(max_vals.at<uchar>(i,j))){
-					max_depths.at<uchar>(i,j) = z;
+					max_layers.at<uchar>(i,j) = z;
 					max_vals.at<uchar>(i,j) = static_cast<int>(images[z].at<uchar>(i,j));
 				}
 			}

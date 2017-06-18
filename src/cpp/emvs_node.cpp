@@ -2,8 +2,8 @@
 
 namespace emvs{
 
-using cv::Mat;
-using cv::Mat_;
+// TODO make sure git lfs is working for data files
+//
 
 EmvsNode::EmvsNode()
 	: events_updated_(false),
@@ -16,8 +16,8 @@ EmvsNode::EmvsNode()
 	pointcloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2> ("map_points", 1);
 	map_points_.height = 1;
 
-	latest_event_image_ = Mat::zeros(sensor_rows, sensor_cols, EVENT_IMAGE_TYPE);
-	new_event_image_ = Mat::zeros(sensor_rows, sensor_cols, EVENT_IMAGE_TYPE);
+	latest_events_ = Mat::zeros(sensor_rows, sensor_cols, EVENT_IMAGE_TYPE);
+	new_events_ = Mat::zeros(sensor_rows, sensor_cols, EVENT_IMAGE_TYPE);
 
 	cv::namedWindow(OPENCV_WINDOW);
 }
@@ -29,12 +29,13 @@ EmvsNode::~EmvsNode()
 
 void EmvsNode::eventCallback(const dvs_msgs::EventArray& msg)
 {
+	// TODO add checks for new keyframe conditions while going thru event msg
 	// Add all events to DSI
 	for(int i=0; i<msg.events.size(); i++)
 	{
-	    new_event_image_.at<uchar>(static_cast<int>(msg.events[i].y), static_cast<int>(msg.events[i].x)) += 1; // TODO this shoud be 1, but is 5000 for viz purposes
+	    new_events_.at<uchar>(static_cast<int>(msg.events[i].y), static_cast<int>(msg.events[i].x)) += 1;
 	}
-	showNormalizedImage(new_event_image_);
+	showNormalizedImage(new_events_);
 }
 
 void EmvsNode::poseCallback(const geometry_msgs::PoseStamped& msg)
@@ -44,20 +45,21 @@ void EmvsNode::poseCallback(const geometry_msgs::PoseStamped& msg)
 	if(new_kf && events_updated_)
 	{
 		addDsiToMap();
-		kf_dsi_.resetDSI();
+
+		kf_pos_ << msg.pose.position.x, msg.pose.position.y, msg.pose.position.z;
+		kf_quat_ << msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w;
 		events_updated_ = false;
 	}
-	else if (cv::countNonZero(new_event_image_) > 0)
+	else if (cv::countNonZero(new_events_) > 0)
 	{
-		// TODO Find out why event images aren't shown in the first few secs
 		events_updated_ = true;
-		latest_event_image_ = undistortImage(new_event_image_);
-		updateDsi(latest_event_image_); // TODO this takes time, so put it on a separate thread?
-		new_event_image_.setTo(0);
+
+		latest_events_ = undistortImage(new_events_);
+		addEventsToDsi(latest_events_); // TODO this takes time, so put it on a separate thread?
+		new_events_.setTo(0);
 	}
 }
 
-// TODO figure out a better name that reflects the fact that this modifies members
 bool EmvsNode::checkForNewKeyframe(const geometry_msgs::PoseStamped& pose)
 {
 	// check for new keyframe (position dist threshold)
@@ -73,30 +75,28 @@ bool EmvsNode::checkForNewKeyframe(const geometry_msgs::PoseStamped& pose)
 	if(dist_from_kf > new_kf_dist_thres_)
 	{
 		new_keyframe = true;
-		kf_pos_ = cur_pos;
-		kf_quat_ << cur_quat;
 	}
 	return new_keyframe;
 }
 
-
-cv::Mat EmvsNode::undistortImage(const cv::Mat input_image)
+Mat EmvsNode::undistortImage(const Mat input_image)
 {
 	cv::Mat output_image(sensor_rows, sensor_cols, EVENT_IMAGE_TYPE, cv::Scalar::all(0));
 	cv::undistort(input_image, output_image, K_camera, D_camera);
 	return output_image;
 }
 
-void EmvsNode::updateDsi(Mat event_img)
+void EmvsNode::addEventsToDsi(const Mat& events)
 {
-	// TODO break this up into smaller functions
+	// Equations from Gallup, David, et al.
+	//"Real-time plane-sweeping stereo with multiple sweeping directions." CVPR 2007
 
-	// Find transform between current pose and keyframe (use quat2rotm and Eigen)
-	// find world->kf, world->image. then do w->kf * inv(w->img) (4x4 matrices)
+	// Find transform between current pose and keyframe
+	// Find world->kf, world->camera. then do world->kf * inv(world->camera)
 	Mat kf_M = makeTransformMatrix(kf_pos_[0], kf_pos_[1], kf_pos_[2],
 								   kf_quat_[0], kf_quat_[1], kf_quat_[2], kf_quat_[3]);
 
-	Mat img_M = makeTransformMatrix(last_pose_.pose.position.x,
+	Mat cam_M = makeTransformMatrix(last_pose_.pose.position.x,
 									last_pose_.pose.position.y,
 									last_pose_.pose.position.z,
 									last_pose_.pose.orientation.x,
@@ -104,31 +104,28 @@ void EmvsNode::updateDsi(Mat event_img)
 									last_pose_.pose.orientation.z,
 									last_pose_.pose.orientation.w);
 
-	Mat T_i2kf = kf_M * img_M.inv();
+	Mat T_c2kf = kf_M * cam_M.inv();
 
+	// Precompute some reused matrices
 	Mat t(3, 1, DOUBLE_TYPE);
-	T_i2kf.col(3).rowRange(0,3).copyTo(t);
+	T_c2kf.col(3).rowRange(0,3).copyTo(t);
 	Mat n = (Mat_<double>(3,1) << 0, 0, -1);
 
-	// precompute some reused matrices. using name from matlab code here - TODO clarify var names
-	Mat R_transpose(3, 3, DOUBLE_TYPE); //
-	T_i2kf.rowRange(0,3).colRange(0,3).copyTo(R_transpose);
+	Mat R_transpose(3, 3, DOUBLE_TYPE);
+	T_c2kf.rowRange(0,3).colRange(0,3).copyTo(R_transpose);
 	Mat R_t_n = R_transpose*t*n.t();
 
-	// TODO For each plane, compute homography from image to plane, warp event image to plane and add
-	Mat H_i2z;
-	// std::cout << "Showing dsi" << std::endl;
+	// For each plane, compute homography from image to plane, warp event image to plane and add to DSI
+	Mat H_c2z;
 	for(int i=0; i<kf_dsi_.N_planes_; i++)
 	{
-		double depth = kf_dsi_.planes_depths_[i];
-
-		H_i2z = (K_camera * (R_transpose + R_t_n/depth)*K_camera.inv()).inv();
-		// std::cout << "H_i2z: " << H_i2z << "\n";
+		double depth = kf_dsi_.getPlaneDepth(i);
+		H_c2z = (K_camera * (R_transpose + R_t_n/depth)*K_camera.inv()).inv();
 
 		cv::Mat event_img_warped;
-		cv::warpPerspective(event_img, event_img_warped, H_i2z, kf_dsi_.dsi_[i].size());
+		cv::warpPerspective(events, event_img_warped, H_c2z, cv::Size(sensor_cols, sensor_rows));
 
-		kf_dsi_.dsi_[i] += event_img_warped;
+		kf_dsi_.addToDsi(event_img_warped, i);
 	}
 }
 
@@ -136,11 +133,25 @@ void EmvsNode::addDsiToMap()
 {
 	PointCloud new_points_kf_frame = kf_dsi_.getFiltered3dPoints();
 
-	// TODO transform points to world frame
-	PointCloud new_points_world_frame;
+	// Transform points to world frame TODO verify this
+	Mat world_to_kf = makeTransformMatrix(kf_pos_[0], kf_pos_[1], kf_pos_[2],
+							kf_quat_[0], kf_quat_[1], kf_quat_[2],kf_quat_[3]);
+	Mat kf_to_world = world_to_kf.inv();
+	Eigen::Matrix4f kf_to_world_tf;
+	cv2eigen(kf_to_world, kf_to_world_tf);
 
-	//Add points to pointcloud, publish
-	// map_points_ += new_points;
+	PointCloud new_points_world_frame;
+  	pcl::transformPointCloud(new_points_kf_frame, new_points_world_frame, kf_to_world_tf);
+
+	map_points_ += new_points_world_frame;
+
+	// Publish map pointcloud
+	sensor_msgs::PointCloud2 msg;
+	pcl::toROSMsg(map_points_, msg);
+	msg.header.frame_id = "world";
+	pointcloud_pub_.publish(msg);
+
+	kf_dsi_.resetDSI();
 }
 
 } // end namespace emvs

@@ -1,4 +1,30 @@
-#include "image_converter.h"
+// From http://wiki.ros.org/cv_bridge/Tutorials/UsingCvBridgeToConvertBetweenROSImagesAndOpenCVImages
+
+#include <ros/ros.h>
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <dvs_msgs/Event.h>
+#include <dvs_msgs/EventArray.h>
+#include "utilities.h"
+
+class ImageConverter
+{
+  ros::NodeHandle nh_;
+  image_transport::ImageTransport it_;
+  ros::Subscriber events_sub_;
+  image_transport::Publisher image_pub_;
+
+public:
+  ImageConverter();
+  ~ImageConverter();
+
+  cv::Mat new_event_image_;
+  void imageCb(const dvs_msgs::EventArray& msg);
+};
+
 
 ImageConverter::ImageConverter()
     : it_(nh_)
@@ -25,7 +51,7 @@ void ImageConverter::imageCb(const dvs_msgs::EventArray& msg)
     // Mi[static_cast<int>(msg.events[i].x)] += 5000;
     new_event_image_.at<uchar>(static_cast<int>(msg.events[i].y), static_cast<int>(msg.events[i].x)) += 5000;
     // new_event_image_(msg.events[i].y, msg.events[i].x) += 5000;
-    // new_event_image_.at<short>(static_cast<int>(msg.events[i].y), static_cast<int>(msg.events[i].x)) += 5000; // TODO this shoud be 1, but is 5000 for viz purposes
+    // new_event_image_.at<short>(static_cast<int>(msg.events[i].y), static_cast<int>(msg.events[i].x)) += 5000;
     // std::cout << "raw: " << msg.events[i].y << " " << msg.events[i].x << std::endl;
     // std::cout << "cast: " << static_cast<int>(msg.events[i].y) << " " << static_cast<int>(msg.events[i].x) << std::endl;
 

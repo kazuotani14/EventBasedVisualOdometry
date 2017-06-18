@@ -5,7 +5,7 @@
 #include <algorithm>
 
 // From: https://gist.github.com/jmbr/2375233
-// TODO look at link for possible improvements
+// look at link for possible improvements
 
 template <typename T>
 std::vector<T> linspace(T start, T end, int N)
