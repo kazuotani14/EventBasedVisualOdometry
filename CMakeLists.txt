@@ -59,7 +59,7 @@ link_directories(
 ## Declare a C++ executable
 add_executable(emvs_node src/cpp/emvs_node.cpp
 			   			 src/cpp/keyframe_dsi.cpp
-						 src/cpp/matlab_utils.cpp
+					     src/cpp/matrix_utils.cpp
 						 src/cpp/filters.cpp)
 add_executable(image_converter src/cpp/image_converter.cpp)
 add_executable(test_pcl src/cpp/test_pcl.cpp)

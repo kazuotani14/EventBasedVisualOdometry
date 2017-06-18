@@ -1,16 +1,17 @@
 #include "keyframe_dsi.h"
 
+namespace emvs{
+
 KeyframeDSI::KeyframeDSI(double im_height, double im_width, double min_depth, double max_depth,
 						 int N_planes, double fx, double fy)
 	: im_height_(im_height), im_width_(im_width),
 	  min_depth_(min_depth), max_depth_(max_depth),
 	  N_planes_(N_planes), fx_(fx), fy_(fy)
 {
-	std::cout << "init kf_dsi" << std::endl;
 	// Reserve space for data
-	planes_scaling_.reserve(N_planes_);
-	planes_depths_.reserve(N_planes_);
-	dsi_.reserve(N_planes_);
+	planes_scaling_.resize(N_planes_);
+	planes_depths_.resize(N_planes_);
+	dsi_.resize(N_planes_);
 
 	// Find uniformly spaced planes, either in depth or inverse depth
 	// *Original EMVS used depth - "we used depth instead of inverse depth in the
@@ -19,7 +20,7 @@ KeyframeDSI::KeyframeDSI(double im_height, double im_width, double min_depth, do
 	// the DSI volume using depth planes uniformly spaced in inverse depth"
 	// *EMVS used N=100, EVO used N=50
 
-	// Uniform depth 
+	// Uniform depth
 	planes_depths_ = linspace(min_depth_, max_depth_, N_planes_);
 
 	// Uniform inverse depth
@@ -41,7 +42,7 @@ KeyframeDSI::KeyframeDSI(double im_height, double im_width, double min_depth, do
 		double scale_y = frustumWidth / im_width;
 		planes_scaling_[i] = {scale_x, scale_y};
 
-		dsi_[i] = cv::Mat::zeros(im_height_, im_width_, CV_16SC1);
+		dsi_[i] = cv::Mat::zeros(im_height_, im_width_, EVENT_IMAGE_TYPE);
 	}
 
 	resetDSI();
@@ -51,37 +52,49 @@ void KeyframeDSI::resetDSI()
 {
 	// Set zeros
 	for (int i=0; i<N_planes_; i++)
-		dsi_[i] = cv::Scalar(0);
+		dsi_[i].setTo(0);
 }
 
-cv::Mat KeyframeDSI::getDepthmap()
+void KeyframeDSI::getDepthmap(cv::Mat& output)
 {
 	int gauss_filter_size = 5;
 	int median_filter_size = 15; //window size must be odd
 
-	// 1. Gaussian filter on each layer
-	cv::Mat gauss_filtered = cv::Mat(im_height_, im_width_, CV_16SC1, cv::Scalar(0));
+	// visualize DSI
 	for(int i=0; i<N_planes_; i++)
 	{
-		cv::GaussianBlur(dsi_[i], gauss_filtered, cv::Size(gauss_filter_size, gauss_filter_size), 0, 0);
-		dsi_[i] = gauss_filtered;
-		// cv::imshow(OPENCV_WINDOW, stack_of_images[i]);
-		// cv::waitKey(500);
+		cv::Mat1b idx = dsi_[i] > 0;
+		dsi_[i].setTo(255, idx);
+		cv::imshow(OPENCV_WINDOW, dsi_[i]);
+		cv::waitKey(100);
+	}
+
+	// 1. Gaussian filter on each layer
+	cv::Mat filtered(im_height_, im_width_, EVENT_IMAGE_TYPE, cv::Scalar(0));
+	for(int i=0; i<N_planes_; i++)
+	{
+		cv::GaussianBlur(dsi_[i], filtered, cv::Size(gauss_filter_size, gauss_filter_size), 3);
+		dsi_[i] = filtered;
+
 	}
 
 	// 2. Find max across all of the images, and their location
 	//TODO figure out better way to do this
-	cv::Mat max_vals, max_locs;
-	findMaxVals3D(dsi_, max_vals, max_locs);
+	findMaxVals3D(dsi_, output);
+	std::cout << "depthmap in getDepthmap: " << cv::countNonZero(output) << std::endl;
+
+	// std::cout << "\n\nmax_locs: \n" << max_locs << "\n";
 
 	// TODO 3. threshold on max to get intermediate depthmap
-	cv::Mat interm_depth_map = cv::Mat(im_height_, im_width_, CV_16SC1, cv::Scalar(0));
+	// cv::Mat interm_depth_map = cv::Mat(im_height_, im_width_, EVENT_IMAGE_TYPE, cv::Scalar(0));
 	//interm_depth_map = confidence_map > (imfilter(confidence_map, filter) - C); // C=-2
 
 	// 4. Median filter on depth map
-	cv::Mat final_depth_map = cv::Mat(im_height_, im_width_, CV_16SC1, cv::Scalar(0));
-	cv::medianBlur(interm_depth_map, final_depth_map, median_filter_size);
+	// cv::Mat final_depthmap(im_height_, im_width_, EVENT_IMAGE_TYPE, cv::Scalar(0));
+	// std::cout << "Image channels: " << max_locs.channels() << " " << filtered.channels() << std::endl;
+	// cv::medianBlur(max_locs, filtered, median_filter_size);
 	// TODO matlab code finds median over non-zero values - may have to implement custom
 
-	return final_depth_map;
 }
+
+} // end namespace emvs

@@ -25,7 +25,7 @@ event_image = double(event_image);
 % parfor i=1:n_planes
 for i=1:n_planes
     H_z2i = K * (R_transpose + R_t_n./KF_depths(i)) / K;
-    H = inv(H_z2i);
+    H = inv(H_z2i); 
 
     tform = projective2d(H');
     event_im_KF = imwarp(event_image, tform, 'nearest', 'OutputView', imref_obj);   

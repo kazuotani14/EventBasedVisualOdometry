@@ -1,4 +1,8 @@
 <launch>
-	<node pkg="evo" type="emvs_node" name="emvs_node" output="screen"/>
-	<node pkg="rosbag" type="play" name="play" args="/home/kazu/Downloads/shapes_6dof.bag"/>
+	<node pkg="evo" type="emvs_node" name="emvs_node" output="screen" launch-prefix=""/>
+	<!-- <node pkg="evo" type="image_converter" name="image_converter" output="screen" launch-prefix="gdb"/> -->
+
+	<node pkg="rosbag" type="play" name="play" args="-r 0.2 $(find evo)/data/shapes_6dof.bag"/>
+	<node pkg="image_view" type="image_view" name="image_view" args="image:=/dvs/image_raw"/>
+		<!-- <node pkg="image_view" type="image_view" name="image_view2" args="image:=/image_converter/output_video"/> -->
 </launch>

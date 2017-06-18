@@ -14,9 +14,15 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include "opencv_defs.h"
+
+namespace emvs{
+
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 void radiusFilter(PointCloud cloud, double search_radius=0.8, int min_neighbors=2);
-void findMaxVals3D(const std::vector<cv::Mat>& images, cv::Mat& max_vals, cv::Mat& max_locs);
+void findMaxVals3D(const std::vector<cv::Mat>& images, cv::Mat& output);
+
+} // end namespace emvs
 
 #endif

@@ -11,6 +11,11 @@
 
 #include <cv.h>
 #include <opencv2/opencv.hpp>
+#include <Eigen/Dense>
+
+#include "opencv_defs.h"
+
+namespace emvs{
 
 // From: https://gist.github.com/jmbr/2375233
 // TODO look at link for possible improvements
@@ -29,5 +34,9 @@ std::vector<T> linspace(T start, T end, int N)
 }
 
 cv::Mat quat2rotm(double q_x, double q_y, double q_z, double q_w);
+
+cv::Mat quat2rotm(const Eigen::Vector4d q);
+
+} // end namespace emvs
 
 #endif

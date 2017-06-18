@@ -15,6 +15,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <Eigen/Dense>
+#include <cv_bridge/cv_bridge.h>
 
 // PCL specific includes
 #include <sensor_msgs/PointCloud2.h>
@@ -24,7 +25,10 @@
 
 #include "keyframe_dsi.h"
 #include "filters.h"
+#include "opencv_defs.h"
+#include "matrix_utils.h"
 
+namespace emvs{
 
 // TODO read camera info from topic
 static int sensor_rows = 180;
@@ -37,8 +41,6 @@ double max_depth = 1.5;
 double N_planes = 50;
 double fx = 199.0923665423112;
 double fy = 198.8288204700886;
-
-static const std::string OPENCV_WINDOW = "Event image";
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
@@ -63,19 +65,25 @@ private:
 	// bool camera_info_received_;
 
 	KeyframeDSI kf_dsi_;
-	bool new_keyframe_;
+	bool first_;
 
 	cv::Mat latest_event_image_;
 	cv::Mat new_event_image_;
-	bool new_pose_estimate_available_;
 	geometry_msgs::PoseStamped latest_pose_estimate_;
+
+	static constexpr double new_kf_dist_thres_ = 0.05; //[m]
+	Eigen::Vector3d kf_pos_;
+	Eigen::Vector4d kf_quat_;
 
 	void eventCallback(const dvs_msgs::EventArray& msg);
 	void poseCallback(const geometry_msgs::PoseStamped& msg);
 	// void camerainfoCallback(const sensor_msgs::CameraInfo& msg);
-	cv::Mat undistortImage(const cv::Mat& input_image);
-	void updateDsi();
+	cv::Mat undistortImage(const cv::Mat input_image);
+	void updateDsi(cv::Mat event_img);
 	void addDsiToMap();
+	bool checkForNewKeyframe(const geometry_msgs::PoseStamped& pose);
 };
+
+} // end namespace emvs
 
 #endif
