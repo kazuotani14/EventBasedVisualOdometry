@@ -3,6 +3,7 @@
 
 *.m~
 
+data/*
 data/shapes_rotation_events.mat
 data/shapes_rotation_groundtruth.mat
 data/boxes_6dof_calib.mat
