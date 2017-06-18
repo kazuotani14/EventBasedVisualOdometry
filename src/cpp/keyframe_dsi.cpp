@@ -82,6 +82,7 @@ void KeyframeDSI::getDepthmap(cv::Mat& output)
 	int gauss_filter_size = 5;
 	int median_filter_size = 15; //window size must be odd
 
+	// TODO Gaussian filter should be ran on confidence map, after findMaxVals3d
 	// 1. Gaussian filter on each layer
 	// std::cout << "showing gaussian filtered dsi." << std::endl;
 	cv::Mat filtered(im_height_, im_width_, EVENT_IMAGE_TYPE, cv::Scalar(0));
@@ -90,16 +91,15 @@ void KeyframeDSI::getDepthmap(cv::Mat& output)
 		cv::GaussianBlur(dsi_[i], filtered, cv::Size(gauss_filter_size, gauss_filter_size), 3);
 		filtered.copyTo(dsi_[i]);
 	}
-	// NOTE pipeline looks good up until here
 
 	// 2. Find max across all of the images, and their location
 	//TODO figure out better way to do this
+	cv::Mat max_locs = cv::Mat(im_height_, im_width_, EVENT_IMAGE_TYPE, cv::Scalar(0));
+	cv::Mat max_vals = cv::Mat(im_height_, im_width_, EVENT_IMAGE_TYPE, cv::Scalar(0));
 	findMaxVals3D(dsi_, output);
-	std::cout << "depthmap in getDepthmap: " << cv::countNonZero(output) << std::endl;
-
-	// std::cout << "\n\nmax_locs: \n" << max_locs << "\n";
 
 	// TODO 3. threshold on max to get intermediate depthmap
+
 
 	// cv::Mat interm_depth_map = cv::Mat(im_height_, im_width_, EVENT_IMAGE_TYPE, cv::Scalar(0));
 	// interm_depth_map = confidence_map > (imfilter(confidence_map, filter) - C); // C=-2

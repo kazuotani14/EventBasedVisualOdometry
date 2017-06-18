@@ -27,21 +27,14 @@ void findMaxVals3D(const std::vector<cv::Mat>& images, cv::Mat& max_locs)
 
 	for(int i=0; i<im_height; i++){
 		for(int j=0; j<im_width; j++){
-			std::cout << "(i,j): " << i << " " << j << std::endl;
 			for(int z=0; z<images.size(); z++){
-				std::cout << static_cast<int>(images[z].at<uchar>(i,j)) << std::endl;
 				if(static_cast<int>(images[z].at<uchar>(i,j)) > static_cast<int>(max_vals(i,j))){
-					// std::cout << static_cast<int>(images[z].at<uchar>(i,j)) << " : " << static_cast<int>(max_vals(i,j)) << std::endl;
 					max_locs.at<uchar>(i,j) = z;
 					max_vals(i,j) = static_cast<int>(images[z].at<uchar>(i,j));
-					// std::cout << static_cast<int>(max_vals(i,j)) << " z: " << z << '\n';
 				}
-				// std::cout << "z: " << z << std::endl;
 			}
 		}
 	}
-
-	std::cout << "max_locs: " << cv::countNonZero(max_locs) << std::endl;
 
 }
 
