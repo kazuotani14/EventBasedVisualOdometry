@@ -5,10 +5,10 @@
 #include <iostream>
 #include <algorithm>
 #include <cmath>
+#include <Eigen/Core>
 
 #include <cv.h>
 #include <opencv2/opencv.hpp>
-#include <Eigen/Dense>
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -19,7 +19,7 @@
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
-static const std::string OPENCV_WINDOW = "Event image";
+static const std::string OPENCV_WINDOW = "Set of events";
 
 namespace emvs{
 

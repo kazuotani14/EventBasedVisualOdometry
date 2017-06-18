@@ -2,6 +2,7 @@
 #define _EMVS_NODE_H_
 
 #include <thread>
+#include <Eigen/Core>
 
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -14,7 +15,6 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <Eigen/Dense>
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/core/eigen.hpp>
 
@@ -46,7 +46,7 @@ const double N_planes = 50;
 const double fx = 199.0923665423112;
 const double fy = 198.8288204700886;
 
-// TODO separate algorithm and ROS node as much as possible 
+// TODO separate algorithm and ROS node as much as possible
 class EmvsNode
 {
 public:

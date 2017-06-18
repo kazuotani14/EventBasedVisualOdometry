@@ -2,9 +2,6 @@
 
 namespace emvs{
 
-// TODO make sure git lfs is working for data files
-//
-
 EmvsNode::EmvsNode()
 	: events_updated_(false),
       kf_dsi_(sensor_rows, sensor_cols, min_depth, max_depth, N_planes, fx, fy)
