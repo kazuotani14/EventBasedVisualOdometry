@@ -2,6 +2,7 @@
 /shapes_translation_groundtruth.mat
 
 *.m~
+*.bag
 
 data/*
 data/shapes_rotation_events.mat
