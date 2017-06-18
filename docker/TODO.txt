@@ -1,0 +1,3 @@
+Fix permissions issues for catkin build
+Add setup using instructions from here: https://github.com/uzh-rpg/rpg_dvs_ros
+Customize ros and tools dockerfiles

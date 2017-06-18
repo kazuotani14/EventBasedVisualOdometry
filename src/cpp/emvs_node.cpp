@@ -39,12 +39,13 @@ void EmvsNode::eventCallback(const dvs_msgs::EventArray& msg)
 	{
 	    new_event_image_.at<uchar>(static_cast<int>(msg.events[i].y), static_cast<int>(msg.events[i].x)) += 1; // TODO this shoud be 1, but is 5000 for viz purposes
 	}
-
+	ROS_INFO("First timestamp in event package: %f", msg.events[0].ts.toSec());
+	ROS_INFO("Last timestamp in event package: %f", msg.events[msg.events.size()].ts.toSec());
 }
 
 void EmvsNode::poseCallback(const geometry_msgs::PoseStamped& msg)
 {
-
+	ROS_INFO("Pose estimate timestamp: %f", msg.header.stamp.toSec());
 	bool new_kf = checkForNewKeyframe(msg);
 
 	if(new_kf || first_)
