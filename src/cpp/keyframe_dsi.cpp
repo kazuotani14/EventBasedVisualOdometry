@@ -2,7 +2,7 @@
 
 namespace emvs{
 
-KeyframeDSI::KeyframeDSI(double im_height, double im_width, double min_depth, double max_depth,
+KeyframeDsi::KeyframeDsi(double im_height, double im_width, double min_depth, double max_depth,
 						 int N_planes, double fx, double fy)
 	: im_height_(im_height), im_width_(im_width),
 	  min_depth_(min_depth), max_depth_(max_depth),
@@ -44,29 +44,40 @@ KeyframeDSI::KeyframeDSI(double im_height, double im_width, double min_depth, do
 
 		dsi_[i] = cv::Mat::zeros(im_height_, im_width_, EVENT_IMAGE_TYPE);
 	}
-
-	resetDSI();
 }
 
-void KeyframeDSI::resetDSI()
+void KeyframeDsi::resetDsi()
 {
 	// Set zeros
 	for (int i=0; i<N_planes_; i++)
 		dsi_[i].setTo(0);
 }
 
-int KeyframeDSI::getPlaneDepth(const int layer)
+KeyframeDsi* KeyframeDsi::clone() const
+{
+	KeyframeDsi* clone_dsi = new KeyframeDsi(im_height_, im_width_, min_depth_, max_depth_, N_planes_,  fx_,  fy_);
+
+	// add to zeros instead of copying - just cuz it's more convenient than trying to copy private member
+	for(int i=0; i<N_planes_; i++)
+	{
+		clone_dsi->addToDsi(dsi_[i], i);
+	}
+
+	return clone_dsi;
+}
+
+int KeyframeDsi::getPlaneDepth(const int layer)
 {
 	return planes_depths_[layer];
 }
 
-void KeyframeDSI::addToDsi(const cv::Mat& events, const int layer)
+void KeyframeDsi::addToDsi(const cv::Mat& events, const int layer)
 {
 	dsi_[layer] += events;
 }
 
 // Returns filtered set of 3D points from DSI, in keyframe frame.
-PointCloud KeyframeDSI::getFiltered3dPoints()
+PointCloud KeyframeDsi::getFiltered3dPoints()
 {
 	//getDepthmap: gaussian blur on each layer, then take max from each layer to return wxh depth map (opencv)
 	cv::Mat depthmap = cv::Mat(im_height_, im_width_, EVENT_IMAGE_TYPE, cv::Scalar(0));
@@ -95,7 +106,7 @@ PointCloud KeyframeDSI::getFiltered3dPoints()
 }
 
 
-void KeyframeDSI::getDepthmap(cv::Mat& output)
+void KeyframeDsi::getDepthmap(cv::Mat& output)
 {
 	// 1. Find max across all of the images, and their location
 	//TODO figure out better way to implement findMaxVals3D - linear search right now
@@ -123,7 +134,7 @@ void KeyframeDSI::getDepthmap(cv::Mat& output)
 	output = depthmap;
 }
 
-void KeyframeDSI::projectDepthmapTo3d(cv::Mat& depthmap, PointCloud& points_camera_frame)
+void KeyframeDsi::projectDepthmapTo3d(cv::Mat& depthmap, PointCloud& points_camera_frame)
 {
 	std::vector<cv::Point> nonzero_locations;
 	cv::findNonZero(depthmap, nonzero_locations);

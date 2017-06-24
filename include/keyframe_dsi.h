@@ -22,17 +22,19 @@ const int median_filter_size = 15; //window size must be odd
 /*! Disparity space image for keyframe in EMVS algorithm.
 	Keeps a discretized "voxel grid" of space in front of keyframe.
 */
-class KeyframeDSI
+class KeyframeDsi
 {
 public:
-	KeyframeDSI(double im_height, double im_width, double min_depth, double max_depth,
+	KeyframeDsi(double im_height, double im_width, double min_depth, double max_depth,
 				int N_planes, double fx, double fy);
 
-	void resetDSI();
+	void resetDsi();
 	PointCloud getFiltered3dPoints();
 
 	int getPlaneDepth(const int layer);
 	void addToDsi(const cv::Mat& events, const int layer);
+
+	KeyframeDsi* clone() const;
 
 	const int N_planes_;
 
@@ -41,14 +43,12 @@ private:
 	double im_height_, im_width_; // [pixels]
 	double fx_, fy_; // [pixels]
 
-
 	// Mapping of size of each layer: pixels -> meters
 	std::vector<std::vector<double> > planes_scaling_;
 	// Depths of each layer [m]
 	std::vector<double> planes_depths_;
 	// Holds voxel grid values of disparity space image
 	std::vector<cv::Mat> dsi_;
-
 
 	// Intermediate steps for getting filtered 3d points in local frame
 	void getDepthmap(cv::Mat& output);

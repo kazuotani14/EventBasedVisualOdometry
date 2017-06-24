@@ -14,12 +14,12 @@ EmvsNode::EmvsNode()
 	pointcloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2> ("map_points", 1);
 	map_points_.height = 1;
 
-	latest_events_ = Mat::zeros(sensor_rows, sensor_cols, EVENT_IMAGE_TYPE);
 	new_events_ = Mat::zeros(sensor_rows, sensor_cols, EVENT_IMAGE_TYPE);
 
 	cv::namedWindow(OPENCV_WINDOW);
 
-	// events_to_dsi_th_ = std::thread(std::bind(&EmvsNode::process_events_to_dsi, this));
+	events_to_dsi_th_ = std::thread(std::bind(&EmvsNode::process_events_to_dsi, this));
+	dsi_to_map_th_ = std::thread(std::bind(&EmvsNode::process_dsi_to_map, this));
 }
 
 EmvsNode::~EmvsNode()
@@ -41,6 +41,8 @@ void EmvsNode::eventCallback(const dvs_msgs::EventArray& msg)
 	if(!n_poses) return;
 	int events_per_pose = ceil(n_events/n_poses);
 
+	ROS_INFO("n_events: %d, n_poses: %d", n_events, n_poses);
+
 	for(int i=0; i<n_poses; i++)
 	{
 		for(int j=i*events_per_pose; j<(i+1)*events_per_pose || j<n_events; j++)
@@ -48,12 +50,11 @@ void EmvsNode::eventCallback(const dvs_msgs::EventArray& msg)
 			new_events_.at<uchar>(static_cast<int>(msg.events[j].y), static_cast<int>(msg.events[j].x)) += 1;
 		}
 
-		latest_events_ = undistortImage(new_events_);
-
-		// TODO deal with queue here
-		addEventsToDsi(latest_events_, received_poses_.front()); // TODO this takes time, so put it on a separate worker thread that checks a queue and does this?
+		Mat undistorted_events_ = undistortImage(new_events_);
+		events_to_dsi_queue_.push(std::make_pair(undistorted_events_, received_poses_.front()));
 		received_poses_.pop();
-		showNormalizedImage(new_events_);
+
+		showNormalizedImage(undistorted_events_);
 		new_events_.setTo(0);
 	}
 }
@@ -66,7 +67,9 @@ void EmvsNode::poseCallback(const geometry_msgs::PoseStamped& msg)
 
 	if(new_kf)
 	{
-		addDsiToMap(); // TODO put this on separate queue
+		std::shared_ptr<KeyframeDsi> ptr(kf_dsi_.clone());
+		dsi_to_map_queue_.push(ptr);  // TODO think more about this - is copying the most efficient?
+		kf_dsi_.resetDsi();
 
 		kf_pos_ << msg.pose.position.x, msg.pose.position.y, msg.pose.position.z;
 		kf_quat_ << msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w;
@@ -90,8 +93,30 @@ void EmvsNode::poseCallback(const geometry_msgs::PoseStamped& msg)
 
 void EmvsNode::process_events_to_dsi()
 {
-	// std::lock_guard<std::mutex> lock(mutexTf_);
-	
+	while(ros::ok())
+	{
+		std::lock_guard<std::mutex> lock(dsi_mutex_);
+		if(!events_to_dsi_queue_.empty())
+		{
+			auto pair = events_to_dsi_queue_.front(); // TODO get pointer instead?
+			addEventsToDsi(pair.first, pair.second);
+			events_to_dsi_queue_.pop();
+		}
+		// ROS_INFO("hey!");
+	}
+}
+
+void EmvsNode::process_dsi_to_map()
+{
+	while(ros::ok())
+	{
+		if(!dsi_to_map_queue_.empty())
+		{
+			std::shared_ptr<KeyframeDsi> kf_ptr = dsi_to_map_queue_.front();
+			addDsiToMap(*kf_ptr); // TODO put this on separate queue. make a new dsi? or get depthmap and copy that?
+			dsi_to_map_queue_.pop();
+		}
+	}
 }
 
 // Check input pose against current keyframe pose (currently position dist threshold)
@@ -157,17 +182,15 @@ void EmvsNode::addEventsToDsi(const Mat& events, const geometry_msgs::PoseStampe
 	}
 }
 
-void EmvsNode::addDsiToMap()
+void EmvsNode::addDsiToMap(KeyframeDsi& kf_dsi)
 {
-	PointCloud new_points_kf_frame = kf_dsi_.getFiltered3dPoints();
+	PointCloud new_points_kf_frame = kf_dsi.getFiltered3dPoints();
 
-	// Transform points to world frame TODO verify this
-
+	// Transform points to world frame
 	Mat world_to_kf_mat = makeTransformMatrix(kf_pos_[0], kf_pos_[1], kf_pos_[2],
 							kf_quat_[0], kf_quat_[1], kf_quat_[2],kf_quat_[3]);
 	Eigen::Matrix4f world_to_kf;
 	cv2eigen(world_to_kf_mat, world_to_kf);
-
 	PointCloud new_points_world_frame;
 	pcl::transformPointCloud(new_points_kf_frame, new_points_world_frame, world_to_kf);
 
@@ -178,8 +201,6 @@ void EmvsNode::addDsiToMap()
 	pcl::toROSMsg(map_points_, msg);
 	msg.header.frame_id = "world";
 	pointcloud_pub_.publish(msg);
-
-	kf_dsi_.resetDSI();
 }
 
 } // end namespace emvs

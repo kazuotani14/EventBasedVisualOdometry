@@ -82,10 +82,9 @@ private:
 	// sensor_msgs::CameraInfo camera_info_;
 	// bool camera_info_received_;
 
-	KeyframeDSI kf_dsi_;
+	KeyframeDsi kf_dsi_;
 	bool events_updated_;
 
-	cv::Mat latest_events_;
 	cv::Mat new_events_;
 	std::queue<geometry_msgs::PoseStamped> received_poses_;
 
@@ -94,12 +93,14 @@ private:
 	Eigen::Vector4d kf_quat_;
 
 	// Worker threads
-	std::mutex mutex_ ;
+	std::mutex dsi_mutex_;
 	std::thread events_to_dsi_th_;
 	std::queue<std::pair<Mat, geometry_msgs::PoseStamped> > events_to_dsi_queue_;
 	void process_events_to_dsi();
-	// std::thread dsi2map_th_;
-	// std::queue<
+
+	std::thread dsi_to_map_th_;
+	std::queue<std::shared_ptr<KeyframeDsi> > dsi_to_map_queue_;
+	void process_dsi_to_map();
 
 	void eventCallback(const dvs_msgs::EventArray& msg);
 	void poseCallback(const geometry_msgs::PoseStamped& msg);
@@ -109,7 +110,7 @@ private:
 
 	bool checkForNewKeyframe(const geometry_msgs::PoseStamped& pose);
 	void addEventsToDsi(const Mat& events, const geometry_msgs::PoseStamped& cam_pose);
-	void addDsiToMap();
+	void addDsiToMap(KeyframeDsi& kf_dsi);
 
 };
 
