@@ -10,7 +10,7 @@
 #include <pcl/point_types.h>
 #include <pcl/filters/radius_outlier_removal.h>
 #include <pcl/filters/conditional_removal.h>
-	
+
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
 int main(int argc, char** argv)
@@ -22,11 +22,11 @@ int main(int argc, char** argv)
 
 	// Make some random point clouds and concatenate them
   	PointCloud cloud1, cloud2, cloud3;
-	cloud1.height = 10;
+	cloud1.height = 30;
 	cloud1.width = 1;
 	cloud1.points.resize(cloud1.width * cloud1.height);
 
-	cloud2.height = 10;
+	cloud2.height = 30;
 	cloud2.width = 1;
 	cloud2.points.resize(cloud2.width * cloud2.height);
 
@@ -55,7 +55,7 @@ int main(int argc, char** argv)
   	  std::cout << "    " << cloud3.points[i].x << " " << cloud3.points[i].y << " " << cloud3.points[i].z << std::endl;
 
 	//Radius filter the resulting pointcloud
-	PointCloud::Ptr cloud_filtered(new PointCloud);
+	PointCloud cloud_filtered;
 	pcl::RadiusOutlierRemoval<pcl::PointXYZ> outrem;
 
 	// build and run the filter
@@ -63,12 +63,14 @@ int main(int argc, char** argv)
 	outrem.setInputCloud(cloud_ptr);
 	outrem.setRadiusSearch(0.8);
 	outrem.setMinNeighborsInRadius(2);
-	outrem.filter(*cloud_filtered);
+	outrem.filter(cloud_filtered);
+
+    std::cout << "width: " << cloud3.width << " height: " << cloud3.height << std::endl;
 
 	// Convert pointclouds to ros msgs and publish
 	sensor_msgs::PointCloud2 msg, msg_filtered;
 	pcl::toROSMsg(cloud3, msg);
-	pcl::toROSMsg(*cloud_filtered, msg_filtered);
+	pcl::toROSMsg(cloud_filtered, msg_filtered);
 	msg.header.frame_id = msg_filtered.header.frame_id = "world";
 	// ROS_INFO("h: %d, w: %d", msg.height, msg.width);
 

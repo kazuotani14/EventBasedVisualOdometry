@@ -5,9 +5,13 @@ namespace emvs{
 // TODO tune these parameters?
 PointCloud radiusFilter(PointCloud& cloud, double search_radius, int min_neighbors)
 {
-	PointCloud::Ptr cloud_ptr(&cloud);
+	ROS_INFO("enter radius filter");
 	PointCloud cloud_filtered;
 	pcl::RadiusOutlierRemoval<pcl::PointXYZ> outrem;
+
+	PointCloud::Ptr cloud_ptr(&cloud);
+
+	std::cout << "width: " << cloud_ptr->width << std::endl;
 
 	outrem.setInputCloud(cloud_ptr);
 	outrem.setRadiusSearch(search_radius);
@@ -16,6 +20,7 @@ PointCloud radiusFilter(PointCloud& cloud, double search_radius, int min_neighbo
 
 	return cloud_filtered;
 }
+
 
 // TODO find a better/faster way to do this
 void findMaxVals3D(const std::vector<cv::Mat>& images, cv::Mat& max_layers, cv::Mat& max_vals)
@@ -33,7 +38,45 @@ void findMaxVals3D(const std::vector<cv::Mat>& images, cv::Mat& max_layers, cv::
 			}
 		}
 	}
+}
 
+
+// TODO make this better... there has to be some opencv trick for this
+// TODO consider zero-padding
+cv::Mat medianFilterNonZero(cv::Mat& img, int radius)
+{
+	std::vector<uchar> vals(9);
+
+	cv::Mat filtered = cv::Mat::zeros(img.rows, img.cols, EVENT_IMAGE_TYPE);
+
+	for(int x=radius; x<(img.rows-radius); x++){
+		for(int y=radius; y<(img.cols-radius); y++){
+			if(img.at<uchar>(x,y) == 0) continue;
+
+			//extract values from block
+			int val;
+			for(int i=-radius; i<radius; i++){
+				for(int j=-radius; j<radius; j++){
+					val = img.at<uchar>(x+i, y+j);
+					if(val==0) continue;
+					vals.push_back(val);
+				}
+			}
+
+			if(vals.empty()) continue;
+
+			//find median of block
+			std::nth_element(vals.begin(), vals.begin() + vals.size()/2, vals.end());
+			int median = vals[vals.size()/2];
+
+			//set value
+			filtered.at<uchar>(x,y) = median;
+
+			vals.clear();
+		}
+	}
+
+	return filtered;
 }
 
 } // end namespace emvs

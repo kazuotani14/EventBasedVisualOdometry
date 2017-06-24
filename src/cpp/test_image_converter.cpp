@@ -10,6 +10,8 @@
 #include <dvs_msgs/EventArray.h>
 #include "utilities.h"
 
+static const std::string OPENCV_WINDOW = "Set of events";
+
 class ImageConverter
 {
   ros::NodeHandle nh_;

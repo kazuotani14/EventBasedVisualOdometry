@@ -49,13 +49,15 @@ const int sensor_cols = 240;
 const cv::Mat D_camera = (cv::Mat_<double>(5,1) << -0.3684363117977873, 0.1509472435566583, -0.0002961305343848646, -0.000759431726241032, 0.0);
 const cv::Mat K_camera = (cv::Mat_<double>(3,3) << 199.0923665423112, 0.0, 132.1920713777002, 0.0, 198.8288204700886, 110.7126600112956, 0.0, 0.0, 1.0);
 
-const double min_depth = 0.7;
-const double max_depth = 1.5;
+// TODO make these params 
+const double min_depth = 0.3;
+const double max_depth = 3.0;
 const double N_planes = 50;
 const double fx = 199.0923665423112;
 const double fy = 198.8288204700886;
 
-// TODO separate algorithm and ROS node as much as possible
+static const std::string OPENCV_WINDOW = "Set of events";
+
 
 /*! Implementation of event-based multi-view stereo algorithm.
  	Inputs: events and pose estimates
@@ -82,15 +84,22 @@ private:
 	// sensor_msgs::CameraInfo camera_info_;
 	// bool camera_info_received_;
 
+	bool first_;
+
 	KeyframeDsi kf_dsi_;
 	bool events_updated_;
 
 	cv::Mat new_events_;
 	std::queue<geometry_msgs::PoseStamped> received_poses_;
 
-	static constexpr double new_kf_dist_thres_ = 0.05; //[m]
+	static constexpr double new_kf_dist_thres_ = 0.1; // TODO make this dependent on average scene depth
 	Eigen::Vector3d kf_pos_;
 	Eigen::Vector4d kf_quat_;
+
+	//filter params
+	// double min_depth_, max_depth_;
+	// int N_planes_;
+	// int gf_size_, gf_sigma_, mf_r_, confidence_map_cushion_;
 
 	// Worker threads
 	std::mutex dsi_mutex_;
@@ -99,7 +108,7 @@ private:
 	void process_events_to_dsi();
 
 	std::thread dsi_to_map_th_;
-	std::queue<std::shared_ptr<KeyframeDsi> > dsi_to_map_queue_;
+	std::queue<std::pair<std::shared_ptr<KeyframeDsi>, geometry_msgs::PoseStamped > > dsi_to_map_queue_;
 	void process_dsi_to_map();
 
 	void eventCallback(const dvs_msgs::EventArray& msg);
@@ -110,7 +119,7 @@ private:
 
 	bool checkForNewKeyframe(const geometry_msgs::PoseStamped& pose);
 	void addEventsToDsi(const Mat& events, const geometry_msgs::PoseStamped& cam_pose);
-	void addDsiToMap(KeyframeDsi& kf_dsi);
+	void addDsiToMap(KeyframeDsi& kf_dsi, geometry_msgs::PoseStamped& kf_pose);
 
 };
 

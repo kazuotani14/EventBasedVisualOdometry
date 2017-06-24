@@ -4,9 +4,9 @@ namespace emvs{
 
 
 EmvsNode::EmvsNode()
-	: kf_dsi_(sensor_rows, sensor_cols, min_depth, max_depth, N_planes, fx, fy)
+	: kf_dsi_(sensor_rows, sensor_cols, min_depth, max_depth, N_planes, fx, fy),
+	first_(true)
 {
-
 	events_sub_ = nh_.subscribe("dvs/events", 1000, &EmvsNode::eventCallback, this);
 	ground_truth_sub_ = nh_.subscribe("optitrack/davis", 100, &EmvsNode::poseCallback, this);
 	// camera_info_sub_ = nh_.subscribe("dvs/camera_info", 1, &EmvsNode::camerainfoCallback, this);
@@ -16,7 +16,7 @@ EmvsNode::EmvsNode()
 
 	new_events_ = Mat::zeros(sensor_rows, sensor_cols, EVENT_IMAGE_TYPE);
 
-	cv::namedWindow(OPENCV_WINDOW);
+	cv::namedWindow(OPENCV_WINDOW, CV_WINDOW_AUTOSIZE);
 
 	events_to_dsi_th_ = std::thread(std::bind(&EmvsNode::process_events_to_dsi, this));
 	dsi_to_map_th_ = std::thread(std::bind(&EmvsNode::process_dsi_to_map, this));
@@ -31,17 +31,13 @@ EmvsNode::~EmvsNode()
 // Events come in batches at 30Hz, while pose estimates come in at 200Hz
 void EmvsNode::eventCallback(const dvs_msgs::EventArray& msg)
 {
-	// ROS_INFO("Received event set at %f from %d to %d", msg.header.stamp.toSec(), msg.events[0].ts, msg.events[n-1].ts);
-
-	// TODO Make this better
+	// TODO Handle events more intelligently
 	// For now, approximate fast "event image" rate by dividing each set of events into smaller subsets
 	// Save poses received up until now into a queue. Ideally, we would look at timestamps and assign accordingly
 	int n_events = msg.events.size();
 	int n_poses = received_poses_.size();
 	if(!n_poses) return;
 	int events_per_pose = ceil(n_events/n_poses);
-
-	ROS_INFO("n_events: %d, n_poses: %d", n_events, n_poses);
 
 	for(int i=0; i<n_poses; i++)
 	{
@@ -54,7 +50,7 @@ void EmvsNode::eventCallback(const dvs_msgs::EventArray& msg)
 		events_to_dsi_queue_.push(std::make_pair(undistorted_events_, received_poses_.front()));
 		received_poses_.pop();
 
-		showNormalizedImage(undistorted_events_);
+		showNormalizedImage(OPENCV_WINDOW, undistorted_events_);
 		new_events_.setTo(0);
 	}
 }
@@ -65,14 +61,36 @@ void EmvsNode::poseCallback(const geometry_msgs::PoseStamped& msg)
 
 	bool new_kf = checkForNewKeyframe(msg);
 
-	if(new_kf)
+	if(new_kf || first_)
 	{
-		std::shared_ptr<KeyframeDsi> ptr(kf_dsi_.clone());
-		dsi_to_map_queue_.push(ptr);  // TODO think more about this - is copying the most efficient?
-		kf_dsi_.resetDsi();
+		first_ = false;
+		{
+			std::lock_guard<std::mutex> lock(dsi_mutex_);
+			std::shared_ptr<KeyframeDsi> ptr(kf_dsi_.clone());
+			geometry_msgs::PoseStamped kf_pose;
+			kf_pose.pose.position.x = kf_pos_[0];
+			kf_pose.pose.position.y = kf_pos_[1];
+			kf_pose.pose.position.z = kf_pos_[2];
+			kf_pose.pose.orientation.x = kf_quat_[0];
+			kf_pose.pose.orientation.y = kf_quat_[1];
+			kf_pose.pose.orientation.z = kf_quat_[2];
+			kf_pose.pose.orientation.w = kf_quat_[3];
+			dsi_to_map_queue_.push(std::make_pair(ptr, kf_pose));  // TODO think more about this - is copying the most efficient?
+			kf_dsi_.resetDsi();
+		}
 
 		kf_pos_ << msg.pose.position.x, msg.pose.position.y, msg.pose.position.z;
 		kf_quat_ << msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w;
+
+		geometry_msgs::TransformStamped transformStamped;
+		transformStamped.header.stamp = ros::Time::now();
+		transformStamped.header.frame_id = "world";
+		transformStamped.child_frame_id = "keyframe";
+		transformStamped.transform.translation.x = msg.pose.position.x;
+		transformStamped.transform.translation.y = msg.pose.position.y;
+		transformStamped.transform.translation.z = msg.pose.position.z;
+		transformStamped.transform.rotation = msg.pose.orientation;
+		tf_br_.sendTransform(transformStamped);
 	}
 	else
 	{
@@ -95,14 +113,12 @@ void EmvsNode::process_events_to_dsi()
 {
 	while(ros::ok())
 	{
-		std::lock_guard<std::mutex> lock(dsi_mutex_);
 		if(!events_to_dsi_queue_.empty())
 		{
 			auto pair = events_to_dsi_queue_.front(); // TODO get pointer instead?
 			addEventsToDsi(pair.first, pair.second);
 			events_to_dsi_queue_.pop();
 		}
-		// ROS_INFO("hey!");
 	}
 }
 
@@ -112,8 +128,9 @@ void EmvsNode::process_dsi_to_map()
 	{
 		if(!dsi_to_map_queue_.empty())
 		{
-			std::shared_ptr<KeyframeDsi> kf_ptr = dsi_to_map_queue_.front();
-			addDsiToMap(*kf_ptr); // TODO put this on separate queue. make a new dsi? or get depthmap and copy that?
+			auto pair = dsi_to_map_queue_.front();
+			std::shared_ptr<KeyframeDsi> kf_ptr = pair.first;
+			addDsiToMap(*kf_ptr, pair.second);
 			dsi_to_map_queue_.pop();
 		}
 	}
@@ -126,7 +143,7 @@ bool EmvsNode::checkForNewKeyframe(const geometry_msgs::PoseStamped& pose)
 	cur_pos << pose.pose.position.x, pose.pose.position.y, pose.pose.position.z;
 	Eigen::Vector4d cur_quat;
 	cur_quat << pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w;
-	double dist_from_kf = (cur_pos - kf_pos_).norm() + 0.1*(cur_quat - kf_quat_).norm(); // arbitrarily weigh rotations down
+	double dist_from_kf = (cur_pos - kf_pos_).norm() + 0.3*(cur_quat - kf_quat_).norm(); // arbitrarily weigh rotations down
 
 	bool new_keyframe = (dist_from_kf > new_kf_dist_thres_) ? true : false;
 	return new_keyframe;
@@ -178,17 +195,22 @@ void EmvsNode::addEventsToDsi(const Mat& events, const geometry_msgs::PoseStampe
 		cv::Mat event_img_warped;
 		cv::warpPerspective(events, event_img_warped, H_c2z, cv::Size(sensor_cols, sensor_rows));
 
+		std::lock_guard<std::mutex> lock(dsi_mutex_);
 		kf_dsi_.addToDsi(event_img_warped, i);
 	}
 }
 
-void EmvsNode::addDsiToMap(KeyframeDsi& kf_dsi)
+void EmvsNode::addDsiToMap(KeyframeDsi& kf_dsi, geometry_msgs::PoseStamped& kf_pose)
 {
+	// cv::Mat depthmap = kf_dsi.getDepthmap();
+	// cv::imshow(OPENCV_WINDOW, depthmap*10);
+	// cv::waitKey(100);
+
 	PointCloud new_points_kf_frame = kf_dsi.getFiltered3dPoints();
 
 	// Transform points to world frame
-	Mat world_to_kf_mat = makeTransformMatrix(kf_pos_[0], kf_pos_[1], kf_pos_[2],
-							kf_quat_[0], kf_quat_[1], kf_quat_[2],kf_quat_[3]);
+	Mat world_to_kf_mat = makeTransformMatrix(kf_pose.pose.position.x, kf_pose.pose.position.y, kf_pose.pose.position.z,
+						kf_pose.pose.orientation.x, kf_pose.pose.orientation.y, kf_pose.pose.orientation.z, kf_pose.pose.orientation.w);
 	Eigen::Matrix4f world_to_kf;
 	cv2eigen(world_to_kf_mat, world_to_kf);
 	PointCloud new_points_world_frame;
@@ -199,6 +221,7 @@ void EmvsNode::addDsiToMap(KeyframeDsi& kf_dsi)
 	// Publish map pointcloud
 	sensor_msgs::PointCloud2 msg;
 	pcl::toROSMsg(map_points_, msg);
+	// pcl::toROSMsg(new_points_kf_frame, msg);
 	msg.header.frame_id = "world";
 	pointcloud_pub_.publish(msg);
 }

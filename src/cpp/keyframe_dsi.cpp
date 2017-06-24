@@ -43,7 +43,14 @@ KeyframeDsi::KeyframeDsi(double im_height, double im_width, double min_depth, do
 		planes_scaling_[i] = {scale_x, scale_y};
 
 		dsi_[i] = cv::Mat::zeros(im_height_, im_width_, EVENT_IMAGE_TYPE);
+
 	}
+	// cv::namedWindow(DEPTHMAP_WINDOW);
+}
+
+KeyframeDsi::~KeyframeDsi()
+{
+	// cv::destroyWindow(DEPTHMAP_WINDOW);
 }
 
 void KeyframeDsi::resetDsi()
@@ -79,20 +86,19 @@ void KeyframeDsi::addToDsi(const cv::Mat& events, const int layer)
 // Returns filtered set of 3D points from DSI, in keyframe frame.
 PointCloud KeyframeDsi::getFiltered3dPoints()
 {
-	//getDepthmap: gaussian blur on each layer, then take max from each layer to return wxh depth map (opencv)
-	cv::Mat depthmap = cv::Mat(im_height_, im_width_, EVENT_IMAGE_TYPE, cv::Scalar(0));
-	getDepthmap(depthmap);
+	// Filter DSI to get a 2D representation of most probable depths
+	cv::Mat depthmap = getDepthmap();
 
-	// TODO verify with fake depthmap
+	// TODO visualize depthmap to tune
+	// std::cout << depthmap << std::endl;
+	// showNormalizedImage(DEPTHMAP_WINDOW, depthmap);
+
 	//ProjectDsiPointsTo3d: get 3d point coordinates from filtered depth map
 	PointCloud new_points;
-	new_points.height = cv::countNonZero(depthmap);
-	new_points.width = 1;
-	new_points.points.resize(cv::countNonZero(depthmap));
 	projectDepthmapTo3d(depthmap, new_points);
 
-	// TODO fix and enable this
-	//RadiusFilter: radius outlier removal of resulting (use pcl)
+	// TODO fix and enable this. seems like it might be a pcl/c++11 problem, but test_pcl works
+	// RadiusFilter: radius outlier removal of resulting (use pcl)
 	// if (cv::countNonZero(depthmap) > 0)
 	// {
 	// 	PointCloud filtered_new_points;
@@ -106,7 +112,7 @@ PointCloud KeyframeDsi::getFiltered3dPoints()
 }
 
 
-void KeyframeDsi::getDepthmap(cv::Mat& output)
+cv::Mat KeyframeDsi::getDepthmap()
 {
 	// 1. Find max across all of the images, and their location
 	//TODO figure out better way to implement findMaxVals3D - linear search right now
@@ -116,37 +122,38 @@ void KeyframeDsi::getDepthmap(cv::Mat& output)
 
 	// 2. Gaussian filter on confidence map
 	cv::Mat filtered(im_height_, im_width_, EVENT_IMAGE_TYPE, cv::Scalar(0));
-	cv::GaussianBlur(max_vals, filtered, cv::Size(gauss_filter_size, gauss_filter_size), guass_filter_sigma);
+	cv::GaussianBlur(max_vals, filtered, cv::Size(gauss_filter_size, gauss_filter_size), gauss_filter_sigma);
 
-	// 3. threshold on filtered to get intermediate depthmap
+	// 3. Threshold on filtered depthmap to get intermediate depthmap
 	// values should come from max_locs
 	cv::Mat thresholded;
 	cv::compare(max_vals, (filtered + confidence_map_cushion), thresholded, cv::CMP_GT);
-	thresholded /= 255;
+	thresholded /= 255; // to make thresholded a binary mask
 
 	cv::Mat depthmap;
 	cv::multiply(thresholded, max_depths, depthmap);
 
 	// 4. TODO Median filter on *non-zero values* of depth map
-	// cv::Mat final_depthmap;
-	// cv::medianBlur(depthmap, final_depthmap, median_filter_size);
+	cv::Mat final_depthmap = medianFilterNonZero(depthmap, median_filter_radius);
+	// cv::Mat final_depthmap = depthmap;
 
-	output = depthmap;
+	return final_depthmap;
 }
 
 void KeyframeDsi::projectDepthmapTo3d(cv::Mat& depthmap, PointCloud& points_camera_frame)
 {
 	std::vector<cv::Point> nonzero_locations;
 	cv::findNonZero(depthmap, nonzero_locations);
-	points_camera_frame.height = nonzero_locations.size();
-	points_camera_frame.width = 1;
+	points_camera_frame.height = 1;
+	points_camera_frame.width = nonzero_locations.size();
 	points_camera_frame.points.resize(points_camera_frame.height * points_camera_frame.width);
 
 	for(int i=0; i<nonzero_locations.size(); i++)
 	{
-		double layer = depthmap.at<double>(nonzero_locations[i].y, nonzero_locations[i].x);
-		points_camera_frame.points[i].x = (nonzero_locations[i].x - im_width_/2) * planes_scaling_[layer][0];
-		points_camera_frame.points[i].y = (nonzero_locations[i].y - im_height_	/2) * planes_scaling_[layer][1];
+		int layer = depthmap.at<uchar>(static_cast<int>(nonzero_locations[i].y), static_cast<int>(nonzero_locations[i].x));
+		if(layer==0) continue;
+		points_camera_frame.points[i].x = (nonzero_locations[i].x - im_height_/2) * planes_scaling_[layer][0];
+		points_camera_frame.points[i].y = (nonzero_locations[i].y - im_width_/2) * planes_scaling_[layer][1];
 		points_camera_frame.points[i].z = planes_depths_[layer];
 	}
 }

@@ -3,11 +3,11 @@
 namespace emvs{
 
 // TODO add option to publish to image topic for rviz
-void showNormalizedImage(const cv::Mat& image, int milliseconds)
+void showNormalizedImage(std::string window, const cv::Mat& image, int milliseconds)
 {
 	cv::Mat viz_event_image;
 	cv::normalize(image, viz_event_image, 0, 255, cv::NORM_MINMAX);
-	cv::imshow(OPENCV_WINDOW, viz_event_image);
+	cv::imshow(window, viz_event_image);
 	cv::waitKey(milliseconds);
 }
 

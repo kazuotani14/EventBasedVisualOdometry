@@ -19,12 +19,10 @@
 
 typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
 
-static const std::string OPENCV_WINDOW = "Set of events";
-
 namespace emvs{
 
 // Visualize opencv image, with normalized values so that low values are visible
-void showNormalizedImage(const cv::Mat& image, int milliseconds=1);
+void showNormalizedImage(std::string window, const cv::Mat& image, int milliseconds=1);
 
 // Quaternion to rotation matrix
 cv::Mat quat2rotm(double q_x, double q_y, double q_z, double q_w);
