@@ -4,9 +4,9 @@ namespace emvs{
 
 
 EmvsNode::EmvsNode()
-	: events_updated_(false),
-      kf_dsi_(sensor_rows, sensor_cols, min_depth, max_depth, N_planes, fx, fy)
+	: kf_dsi_(sensor_rows, sensor_cols, min_depth, max_depth, N_planes, fx, fy)
 {
+
 	events_sub_ = nh_.subscribe("dvs/events", 1000, &EmvsNode::eventCallback, this);
 	ground_truth_sub_ = nh_.subscribe("optitrack/davis", 100, &EmvsNode::poseCallback, this);
 	// camera_info_sub_ = nh_.subscribe("dvs/camera_info", 1, &EmvsNode::camerainfoCallback, this);
@@ -18,6 +18,8 @@ EmvsNode::EmvsNode()
 	new_events_ = Mat::zeros(sensor_rows, sensor_cols, EVENT_IMAGE_TYPE);
 
 	cv::namedWindow(OPENCV_WINDOW);
+
+	// events_to_dsi_th_ = std::thread(std::bind(&EmvsNode::process_events_to_dsi, this));
 }
 
 EmvsNode::~EmvsNode()
@@ -25,55 +27,83 @@ EmvsNode::~EmvsNode()
 	cv::destroyWindow(OPENCV_WINDOW);
 }
 
+// Add events to DSI
+// Events come in batches at 30Hz, while pose estimates come in at 200Hz
 void EmvsNode::eventCallback(const dvs_msgs::EventArray& msg)
 {
-	// TODO add checks for new keyframe conditions while going thru event msg
-	// Add all events to DSI
-	for(int i=0; i<msg.events.size(); i++)
-	{
-	    new_events_.at<uchar>(static_cast<int>(msg.events[i].y), static_cast<int>(msg.events[i].x)) += 1;
-	}
-	showNormalizedImage(new_events_);
-}
+	// ROS_INFO("Received event set at %f from %d to %d", msg.header.stamp.toSec(), msg.events[0].ts, msg.events[n-1].ts);
 
-void EmvsNode::poseCallback(const geometry_msgs::PoseStamped& msg)
-{
-	bool new_kf = checkForNewKeyframe(msg);
+	// TODO Make this better
+	// For now, approximate fast "event image" rate by dividing each set of events into smaller subsets
+	// Save poses received up until now into a queue. Ideally, we would look at timestamps and assign accordingly
+	int n_events = msg.events.size();
+	int n_poses = received_poses_.size();
+	if(!n_poses) return;
+	int events_per_pose = ceil(n_events/n_poses);
 
-	if(new_kf && events_updated_)
+	for(int i=0; i<n_poses; i++)
 	{
-		addDsiToMap();
-
-		kf_pos_ << msg.pose.position.x, msg.pose.position.y, msg.pose.position.z;
-		kf_quat_ << msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w;
-		events_updated_ = false;
-	}
-	else if (cv::countNonZero(new_events_) > 0)
-	{
-		events_updated_ = true;
+		for(int j=i*events_per_pose; j<(i+1)*events_per_pose || j<n_events; j++)
+		{
+			new_events_.at<uchar>(static_cast<int>(msg.events[j].y), static_cast<int>(msg.events[j].x)) += 1;
+		}
 
 		latest_events_ = undistortImage(new_events_);
-		addEventsToDsi(latest_events_); // TODO this takes time, so put it on a separate thread?
+
+		// TODO deal with queue here
+		addEventsToDsi(latest_events_, received_poses_.front()); // TODO this takes time, so put it on a separate worker thread that checks a queue and does this?
+		received_poses_.pop();
+		showNormalizedImage(new_events_);
 		new_events_.setTo(0);
 	}
 }
 
+void EmvsNode::poseCallback(const geometry_msgs::PoseStamped& msg)
+{
+	// ROS_INFO("Received pose at %f", msg.header.stamp.toSec());
+
+	bool new_kf = checkForNewKeyframe(msg);
+
+	if(new_kf)
+	{
+		addDsiToMap(); // TODO put this on separate queue
+
+		kf_pos_ << msg.pose.position.x, msg.pose.position.y, msg.pose.position.z;
+		kf_quat_ << msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w;
+	}
+	else
+	{
+    	received_poses_.push(msg);
+	}
+
+	// publish tf for visualization
+	geometry_msgs::TransformStamped transformStamped;
+	transformStamped.header.stamp = ros::Time::now();
+	transformStamped.header.frame_id = "world";
+	transformStamped.child_frame_id = "davis_camera";
+	transformStamped.transform.translation.x = msg.pose.position.x;
+	transformStamped.transform.translation.y = msg.pose.position.y;
+	transformStamped.transform.translation.z = msg.pose.position.z;
+	transformStamped.transform.rotation = msg.pose.orientation;
+	tf_br_.sendTransform(transformStamped);
+}
+
+void EmvsNode::process_events_to_dsi()
+{
+	// std::lock_guard<std::mutex> lock(mutexTf_);
+	
+}
+
+// Check input pose against current keyframe pose (currently position dist threshold)
 bool EmvsNode::checkForNewKeyframe(const geometry_msgs::PoseStamped& pose)
 {
-	// check for new keyframe (position dist threshold)
 	Eigen::Vector3d cur_pos;
 	cur_pos << pose.pose.position.x, pose.pose.position.y, pose.pose.position.z;
 	Eigen::Vector4d cur_quat;
 	cur_quat << pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w;
-	double dist_from_kf = (cur_pos - kf_pos_).norm() + 0.1*(cur_quat - kf_quat_).norm();
+	double dist_from_kf = (cur_pos - kf_pos_).norm() + 0.1*(cur_quat - kf_quat_).norm(); // arbitrarily weigh rotations down
 
-	last_pose_ = pose;
-
-	bool new_keyframe = false;
-	if(dist_from_kf > new_kf_dist_thres_)
-	{
-		new_keyframe = true;
-	}
+	bool new_keyframe = (dist_from_kf > new_kf_dist_thres_) ? true : false;
 	return new_keyframe;
 }
 
@@ -84,7 +114,7 @@ Mat EmvsNode::undistortImage(const Mat input_image)
 	return output_image;
 }
 
-void EmvsNode::addEventsToDsi(const Mat& events)
+void EmvsNode::addEventsToDsi(const Mat& events, const geometry_msgs::PoseStamped& cam_pose)
 {
 	// Equations from Gallup, David, et al.
 	//"Real-time plane-sweeping stereo with multiple sweeping directions." CVPR 2007
@@ -94,13 +124,13 @@ void EmvsNode::addEventsToDsi(const Mat& events)
 	Mat kf_M = makeTransformMatrix(kf_pos_[0], kf_pos_[1], kf_pos_[2],
 								   kf_quat_[0], kf_quat_[1], kf_quat_[2], kf_quat_[3]);
 
-	Mat cam_M = makeTransformMatrix(last_pose_.pose.position.x,
-									last_pose_.pose.position.y,
-									last_pose_.pose.position.z,
-									last_pose_.pose.orientation.x,
-									last_pose_.pose.orientation.y,
-									last_pose_.pose.orientation.z,
-									last_pose_.pose.orientation.w);
+	Mat cam_M = makeTransformMatrix(cam_pose.pose.position.x,
+									cam_pose.pose.position.y,
+									cam_pose.pose.position.z,
+									cam_pose.pose.orientation.x,
+									cam_pose.pose.orientation.y,
+									cam_pose.pose.orientation.z,
+									cam_pose.pose.orientation.w);
 
 	Mat T_c2kf = kf_M * cam_M.inv();
 
@@ -132,14 +162,14 @@ void EmvsNode::addDsiToMap()
 	PointCloud new_points_kf_frame = kf_dsi_.getFiltered3dPoints();
 
 	// Transform points to world frame TODO verify this
-	Mat world_to_kf = makeTransformMatrix(kf_pos_[0], kf_pos_[1], kf_pos_[2],
+
+	Mat world_to_kf_mat = makeTransformMatrix(kf_pos_[0], kf_pos_[1], kf_pos_[2],
 							kf_quat_[0], kf_quat_[1], kf_quat_[2],kf_quat_[3]);
-	Mat kf_to_world = world_to_kf.inv();
-	Eigen::Matrix4f kf_to_world_tf;
-	cv2eigen(kf_to_world, kf_to_world_tf);
+	Eigen::Matrix4f world_to_kf;
+	cv2eigen(world_to_kf_mat, world_to_kf);
 
 	PointCloud new_points_world_frame;
-  	pcl::transformPointCloud(new_points_kf_frame, new_points_world_frame, kf_to_world_tf);
+	pcl::transformPointCloud(new_points_kf_frame, new_points_world_frame, world_to_kf);
 
 	map_points_ += new_points_world_frame;
 

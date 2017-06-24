@@ -1,8 +1,13 @@
 <launch>
-	<node pkg="evo" type="emvs_node" name="emvs_node" output="screen" launch-prefix=""/>
-	<!-- <node pkg="evo" type="image_converter" name="image_converter" output="screen" launch-prefix="gdb"/> -->
+	<!-- <param name="/use_sim_time" value="true"/> -->
 
-	<node pkg="rosbag" type="play" name="play" args="-r 0.2 $(find evo)/data/shapes_6dof.bag"/>
-	<node pkg="image_view" type="image_view" name="image_view" args="image:=/dvs/image_raw"/>
-		<!-- <node pkg="image_view" type="image_view" name="image_view2" args="image:=/image_converter/output_video"/> -->
+	<node pkg="rosbag" type="play" name="play" args="-r 0.5 $(find evo)/data/shapes_6dof.bag"/>
+	<!-- <node pkg="rosbag" type="play" name="play" args="-r 0.1 $(find evo)/data/boxes_6dof.bag"/> -->
+
+	<node pkg="evo" type="emvs_node" name="emvs_node" output="screen" launch-prefix=""/>
+
+	<!-- Visualization -->
+	<!-- <node pkg="image_view" type="image_view" name="image_view" args="image:=/dvs/image_raw"/> -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find evo)/launch/map_viz.rviz"/>
+
 </launch>

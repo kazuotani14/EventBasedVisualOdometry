@@ -1,14 +1,26 @@
 #ifndef _EMVS_NODE_H_
 #define _EMVS_NODE_H_
 
+#include <queue>
+#include <thread>
+#include <cmath>
+#include <algorithm>
+#include <mutex>
 #include <thread>
 #include <Eigen/Core>
 
+#include "keyframe_dsi.h"
+#include "filters.h"
+#include "utilities.h"
+
+// ROS
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <dvs_msgs/Event.h>
 #include <dvs_msgs/EventArray.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <geometry_msgs/TransformStamped.h>
 
 //OpenCV
 #include <cv.h>
@@ -18,16 +30,13 @@
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/core/eigen.hpp>
 
-// PCL specific includes
+// PCL
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/common/transforms.h>
 
-#include "keyframe_dsi.h"
-#include "filters.h"
-#include "utilities.h"
 
 namespace emvs{
 
@@ -65,6 +74,8 @@ private:
 	ros::Subscriber ground_truth_sub_;
 	ros::Subscriber imu_sub_;
 
+	tf2_ros::TransformBroadcaster tf_br_;
+
 	ros::Publisher pointcloud_pub_;
 	PointCloud map_points_;
 
@@ -76,11 +87,19 @@ private:
 
 	cv::Mat latest_events_;
 	cv::Mat new_events_;
-	geometry_msgs::PoseStamped last_pose_;
+	std::queue<geometry_msgs::PoseStamped> received_poses_;
 
 	static constexpr double new_kf_dist_thres_ = 0.05; //[m]
 	Eigen::Vector3d kf_pos_;
 	Eigen::Vector4d kf_quat_;
+
+	// Worker threads
+	std::mutex mutex_ ;
+	std::thread events_to_dsi_th_;
+	std::queue<std::pair<Mat, geometry_msgs::PoseStamped> > events_to_dsi_queue_;
+	void process_events_to_dsi();
+	// std::thread dsi2map_th_;
+	// std::queue<
 
 	void eventCallback(const dvs_msgs::EventArray& msg);
 	void poseCallback(const geometry_msgs::PoseStamped& msg);
@@ -89,7 +108,7 @@ private:
 	Mat undistortImage(const Mat input_image);
 
 	bool checkForNewKeyframe(const geometry_msgs::PoseStamped& pose);
-	void addEventsToDsi(const Mat& events);
+	void addEventsToDsi(const Mat& events, const geometry_msgs::PoseStamped& cam_pose);
 	void addDsiToMap();
 
 };

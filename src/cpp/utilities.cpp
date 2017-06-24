@@ -2,6 +2,7 @@
 
 namespace emvs{
 
+// TODO add option to publish to image topic for rviz
 void showNormalizedImage(const cv::Mat& image, int milliseconds)
 {
 	cv::Mat viz_event_image;

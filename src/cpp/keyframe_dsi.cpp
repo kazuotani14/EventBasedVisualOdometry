@@ -72,7 +72,7 @@ PointCloud KeyframeDSI::getFiltered3dPoints()
 	cv::Mat depthmap = cv::Mat(im_height_, im_width_, EVENT_IMAGE_TYPE, cv::Scalar(0));
 	getDepthmap(depthmap);
 
-	// TODO verify
+	// TODO verify with fake depthmap
 	//ProjectDsiPointsTo3d: get 3d point coordinates from filtered depth map
 	PointCloud new_points;
 	new_points.height = cv::countNonZero(depthmap);
