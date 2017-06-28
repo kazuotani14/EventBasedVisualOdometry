@@ -23,6 +23,10 @@ PointCloud radiusFilter(PointCloud& cloud, double search_radius, int min_neighbo
 
 
 // TODO find a better/faster way to do this
+// Use vectorization in Eigen, MKL backend (free for students)
+// Figure out how to convert between Eigen matrices and cv::Mat cheaply
+// Turn on compiler flags - https://github.com/resibots/limbo/blob/master/wscript
+// 	native_flags from link above
 void findMaxVals3D(const std::vector<cv::Mat>& images, cv::Mat& max_layers, cv::Mat& max_vals)
 {
 	int im_height = images[0].rows;
