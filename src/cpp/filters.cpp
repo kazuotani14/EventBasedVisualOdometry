@@ -2,26 +2,6 @@
 
 namespace emvs{
 
-// TODO tune these parameters?
-PointCloud radiusFilter(PointCloud& cloud, double search_radius, int min_neighbors)
-{
-	ROS_INFO("enter radius filter");
-	PointCloud cloud_filtered;
-	pcl::RadiusOutlierRemoval<pcl::PointXYZ> outrem;
-
-	PointCloud::Ptr cloud_ptr(&cloud);
-
-	std::cout << "width: " << cloud_ptr->width << std::endl;
-
-	outrem.setInputCloud(cloud_ptr);
-	outrem.setRadiusSearch(search_radius);
-	outrem.setMinNeighborsInRadius(min_neighbors);
-	outrem.filter(cloud_filtered);
-
-	return cloud_filtered;
-}
-
-
 // TODO find a better/faster way to do this
 // Use vectorization in Eigen, MKL backend (free for students)
 // Figure out how to convert between Eigen matrices and cv::Mat cheaply
@@ -43,7 +23,6 @@ void findMaxVals3D(const std::vector<cv::Mat>& images, cv::Mat& max_layers, cv::
 		}
 	}
 }
-
 
 // TODO make this better... there has to be some opencv trick for this
 // TODO consider zero-padding
@@ -81,6 +60,25 @@ cv::Mat medianFilterNonZero(cv::Mat& img, int radius)
 	}
 
 	return filtered;
+}
+
+// TODO tune these parameters?
+PointCloud radiusFilter(PointCloud& cloud, double search_radius, int min_neighbors)
+{
+	ROS_INFO("enter radius filter");
+	PointCloud cloud_filtered;
+	pcl::RadiusOutlierRemoval<pcl::PointXYZ> outrem;
+
+	PointCloud::Ptr cloud_ptr(&cloud);
+
+	std::cout << "width: " << cloud_ptr->width << std::endl;
+
+	outrem.setInputCloud(cloud_ptr);
+	outrem.setRadiusSearch(search_radius);
+	outrem.setMinNeighborsInRadius(min_neighbors);
+	outrem.filter(cloud_filtered);
+
+	return cloud_filtered;
 }
 
 } // end namespace emvs
