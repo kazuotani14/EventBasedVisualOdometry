@@ -36,7 +36,7 @@ Visualization Manager:
       Cell Size: 1
       Class: rviz/Grid
       Color: 160; 160; 164
-      Enabled: true
+      Enabled: false
       Line Style:
         Line Width: 0.0299999993
         Value: Lines
@@ -49,7 +49,7 @@ Visualization Manager:
       Plane: XY
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
-      Value: true
+      Value: false
     - Class: rviz/TF
       Enabled: true
       Frame Timeout: 30
@@ -97,7 +97,7 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.00499999989
+      Size (m): 0.0250000004
       Style: Flat Squares
       Topic: /map_points
       Unreliable: false
@@ -118,7 +118,7 @@ Visualization Manager:
       Value: false
   Enabled: true
   Global Options:
-    Background Color: 48; 48; 48
+    Background Color: 130; 130; 130
     Fixed Frame: world
     Frame Rate: 30
   Name: root
@@ -140,24 +140,24 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 5.76504707
+      Distance: 7.46410131
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 7.11681986
-        Y: -0.174144313
-        Z: 0.115424067
+        X: 1.44393313
+        Y: 1.22274792
+        Z: 1.63975847
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.510202646
+      Pitch: -0.419797212
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.53724241
+      Yaw: 1.54724491
     Saved: ~
 Window Geometry:
   Displays:

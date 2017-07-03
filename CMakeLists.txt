@@ -17,10 +17,12 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   pcl_conversions
   pcl_msgs
+  rostest
 )
 
 find_package(PCL REQUIRED)
-find_package(OpenCV REQUIRED)
+# find_package(OpenCV REQUIRED)
+find_package(OpenCV REQUIRED core highgui)
 
 ###################################
 ## catkin specific configuration ##
@@ -58,16 +60,19 @@ link_directories(
 )
 
 ## Declare a C++ executable
-add_executable(emvs_node src/cpp/emvs_node.cpp
-			   			 src/cpp/keyframe_dsi.cpp
-						 src/cpp/filters.cpp
-           src/cpp/utilities.cpp)
+set(SRC src/emvs_node.cpp src/keyframe_dsi.cpp src/filters.cpp src/utilities.cpp)
+add_executable(emvs_node ${SRC})
+
+add_library(codeToTest ${SRC})
 # add_executable(test_image_converter src/cpp/test_image_converter.cpp)
-add_executable(test_pcl src/cpp/test_pcl.cpp)
+# add_executable(test_pcl src/cpp/test_pcl.cpp)
 # add_executable(test_opencv src/cpp/test_opencv.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(emvs_node ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRARIES})
 # target_link_libraries(test_image_converter ${catkin_LIBRARIES} ${OpenCV_LIBS})
-target_link_libraries(test_pcl ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+# target_link_libraries(test_pcl ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 # target_link_libraries(test_opencv ${catkin_LIBRARIES} ${OpenCV_LIBS})
+
+catkin_add_gtest(filter_tests test/filter_tests.cpp)
+target_link_libraries(filter_tests codeToTest ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PCL_LIBRARIES})
