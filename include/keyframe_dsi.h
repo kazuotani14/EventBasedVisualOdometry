@@ -62,7 +62,6 @@ private:
 	// Intermediate steps for getting filtered 3d points in local frame
 	cv::Mat getDepthmap();
 	void projectDepthmapTo3d(cv::Mat& depthmap, PointCloud& points_camera_frame);
-
 };
 
 } // end namespace emvs
