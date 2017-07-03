@@ -2,13 +2,13 @@
 
 Matlab/C++ implementation of Event-Based Multi-View Stereo (mapping half of Event-Based Visual Odometry)
 
-<!-- ![](https://github.com/kazuotani14/EventBasedVisualOdometry) -->
+![](https://github.com/kazuotani14/EventBasedVisualOdometry/blob/master/doc/results/office_depth_map_kf1.png)
 
 ### Prerequisites
 
 _Matlab_: standalone - just need to get data.
 
-_ROS node_:
+_ROS node_ (work in progress):
 
 * OpenCV
 * Eigen
