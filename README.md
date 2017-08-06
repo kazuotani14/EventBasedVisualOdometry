@@ -2,7 +2,7 @@
 
 Matlab/C++ implementation of Event-Based Multi-View Stereo (mapping half of Event-Based Visual Odometry)
 
-<img src="doc/results/office_depth_map_kf1.png" style="width: 100px;"/>
+<img src="doc/results/office_depth_map_kf1.png" width="200/>
 
 ### Prerequisites
 
