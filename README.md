@@ -2,7 +2,7 @@
 
 Matlab/C++ implementation of Event-Based Multi-View Stereo (mapping half of Event-Based Visual Odometry)
 
-![](https://github.com/kazuotani14/EventBasedVisualOdometry/blob/master/doc/results/office_depth_map_kf1.png)
+![](https://github.com/kazuotani14/EventBasedVisualOdometry/blob/master/doc/results/office_depth_map_kf1.png =300x)
 
 ### Prerequisites
 
@@ -27,6 +27,15 @@ _ROS node_: download rosbag to data folder and point emvs.launch to it.
 _Matlab_: Run EMVS.m
 
 _ROS node_: `roslaunch evo emvs.launch`
+
+### Authors
+
+* Aum Jadhav
+* Benjamin Kuo
+* Cyrus Liu
+* Kazu Otani
+* Maitreya Naik
+* Max Hu
 
 ### References
 
