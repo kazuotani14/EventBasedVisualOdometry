@@ -1,6 +1,6 @@
 # EVO
 
-Matlab/C++ implementation of Event-Based Multi-View Stereo (mapping half of Event-Based Visual Odometry)
+Matlab/C++ implementation of Event-Based Multi-View Stereo (mapping half of Event-Based Visual Odometry). 
 
 <center>
 <img src="doc/results/office_depth_map_kf1.png" width="400"/>
@@ -46,3 +46,5 @@ _ROS node_: `roslaunch evo emvs.launch`
 * Henri Rebecq, Timo Horstschaefer, Guillermo Gallego, Davide Scaramuzza, "EVO: A Geometric Approach to Event-based 6-DOF Parallel Tracking and Mapping in Real-time," IEEE Robotics and Automation Letters (RA-L), 2016.
 
 * Gallup, David, et al. ”Real-time plane-sweeping stereo with multiple sweeping directions.” Computer Vision and Pattern Recognition, 2007. CVPR’07. IEEE Conference on. IEEE, 2007
+
+* [event-based_vision_resources](https://github.com/uzh-rpg/event-based_vision_resources) from UZH group
