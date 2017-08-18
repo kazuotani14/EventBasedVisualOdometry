@@ -48,3 +48,4 @@ _ROS node_: `roslaunch evo emvs.launch`
 * Gallup, David, et al. ”Real-time plane-sweeping stereo with multiple sweeping directions.” Computer Vision and Pattern Recognition, 2007. CVPR’07. IEEE Conference on. IEEE, 2007
 
 * [event-based_vision_resources](https://github.com/uzh-rpg/event-based_vision_resources) from UZH group
+* [Image Reconstruction from an Event Camera](https://github.com/uzh-rpg/rpg_image_reconstruction_from_events) - also from UZH
