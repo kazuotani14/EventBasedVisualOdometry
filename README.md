@@ -32,12 +32,12 @@ _ROS node_: `roslaunch evo emvs.launch`
 
 ### Authors
 
+* Max Hu
 * Aum Jadhav
 * Benjamin Kuo
 * Cyrus Liu
-* Kazu Otani
 * Maitreya Naik
-* Max Hu
+* Kazu Otani
 
 ### References
 
