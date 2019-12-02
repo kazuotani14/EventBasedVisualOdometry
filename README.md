@@ -1,10 +1,12 @@
 # EVO
 
-Matlab/C++ implementation of Event-Based Multi-View Stereo (mapping half of Event-Based Visual Odometry). 
+Matlab/C++ implementation of Event-Based Multi-View Stereo (mapping half of Event-Based Visual Odometry, i.e. using ground truth poses for localization). 
 
 <center>
 <img src="doc/results/office_depth_map_kf1.png" width="400"/>
 </center>
+
+**Note**: After we worked on this project, the authors of the paper published [source code for EMVS](https://github.com/uzh-rpg/rpg_emvs). They have also compiled a helpful [list of resources for event-based vision](https://github.com/uzh-rpg/event-based_vision_resources).  
 
 ### Prerequisites
 
